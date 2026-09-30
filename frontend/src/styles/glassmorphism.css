@@ -1,0 +1,98 @@
+/* ==========================================================================
+   CrimeMind Glassmorphism & Surface Utilities
+   ========================================================================== */
+
+.glass-panel {
+  background: var(--glass-bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-medium);
+}
+
+.glass-panel-elevated {
+  background: var(--glass-bg-elevated);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.glass-panel-interactive {
+  cursor: pointer;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.glass-panel-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-crimson);
+  box-shadow: var(--shadow-crimson-sm);
+}
+
+.glass-panel-crimson {
+  border-color: var(--border-crimson);
+  box-shadow: var(--shadow-crimson-sm);
+}
+
+.glass-panel-crimson:hover {
+  border-color: var(--border-crimson-bright);
+  box-shadow: var(--shadow-crimson-md);
+}
+
+/* Subtle top reflection edge on cards */
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Crimson corner accent */
+.crimson-corner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, transparent 50%, var(--crimson-neon) 50%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Glowing text effects */
+.text-glow-crimson {
+  text-shadow: 0 0 12px rgba(255, 42, 66, 0.6);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
+}
+
+/* Subtle grid line overlay */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Noise gradient overlay */
+.bg-vignette {
+  background: radial-gradient(circle at 50% 30%, rgba(255, 42, 66, 0.05) 0%, transparent 60%),
+              radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
+              var(--bg-primary);
+}

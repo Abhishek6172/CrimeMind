@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-09-29T11:34:14.480583",
+  "scale": 1.0,
+  "seed": 42,
+  "metrics": {
+    "users": 100,
+    "locations": 1200,
+    "cctv_cameras": 2500,
+    "persons": 10000,
+    "vehicles": 5000,
+    "cases": 2000,
+    "incidents": 5000,
+    "case_persons": 8078,
+    "evidence": 20000,
+    "statements": 8000,
+    "relationships": 50000,
+    "call_records": 50000,
+    "transactions": 50000,
+    "cctv_detections": 100000,
+    "person_locations": 40000,
+    "events": 100000,
+    "agent_runs": 2000,
+    "ai_findings": 4000,
+    "investigation_notes": 8000,
+    "audit_logs": 15000
+  },
+  "scenarios": [
+    "Scenario 1: Repeated burglary network ('The Midnight Syndicate')",
+    "Scenario 2: Vehicle appearing near multiple incidents ('Phantom Charger SYN-7X91')",
+    "Scenario 3: Person communicating with multiple suspects ('Cipher Nexus Evelyn Reed')",
+    "Scenario 4: Financial transaction followed by physical appearance near crime scene ('Trevor Bennett')",
+    "Scenario 5: Same person/vehicle appearing across historical and current cases ('Viktor Orlov')"
+  ]
+}

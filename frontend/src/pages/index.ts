@@ -1,0 +1,12 @@
+export { LandingPage } from '../features/landing/LandingPage';
+export { DashboardPage } from '../features/dashboard/DashboardPage';
+export { InvestigationsPage } from '../features/investigations/InvestigationsPage';
+export { EvidencePage } from '../features/evidence/EvidencePage';
+export { RelationshipGraphPage } from '../features/graph/RelationshipGraphPage';
+export { PersonProfilePage } from '../features/persons/PersonProfilePage';
+export { LocationIntelligencePage } from '../features/locations/LocationIntelligencePage';
+export { CCTVIntelligencePage } from '../features/cctv/CCTVIntelligencePage';
+export { AssistantPage } from '../features/assistant/AssistantPage';
+export { AgentsPage } from '../features/agents/AgentsPage';
+export { AlertsPage } from '../features/alerts/AlertsPage';
+export { AnalyticsPage } from '../features/analytics/AnalyticsPage';

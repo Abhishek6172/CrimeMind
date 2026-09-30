@@ -1,0 +1,131 @@
+/* ==========================================================================
+   CrimeMind Motion & Micro-Animations
+   ========================================================================== */
+
+/* 1. Crimson Pulse for active detections & live alerts */
+@keyframes crimsonPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 42, 66, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 42, 66, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 42, 66, 0);
+  }
+}
+
+.animate-pulse-crimson {
+  animation: crimsonPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* 2. Audio Waveform Bars (Hands-free Voice Mode) */
+@keyframes waveScale {
+  0%, 100% {
+    transform: scaleY(0.2);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.wave-bar {
+  animation: waveScale 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+.wave-bar:nth-child(2) { animation-delay: 0.15s; }
+.wave-bar:nth-child(3) { animation-delay: 0.3s; }
+.wave-bar:nth-child(4) { animation-delay: 0.45s; }
+.wave-bar:nth-child(5) { animation-delay: 0.6s; }
+.wave-bar:nth-child(6) { animation-delay: 0.2s; }
+.wave-bar:nth-child(7) { animation-delay: 0.35s; }
+.wave-bar:nth-child(8) { animation-delay: 0.5s; }
+
+/* 3. 3D Evidence Network Cube Spin */
+@keyframes rotateCube {
+  0% {
+    transform: rotateX(-18deg) rotateY(0deg);
+  }
+  100% {
+    transform: rotateX(-18deg) rotateY(360deg);
+  }
+}
+
+.animate-rotate-cube {
+  animation: rotateCube 24s linear infinite;
+  transform-style: preserve-3d;
+}
+
+/* 4. Radar Sweep (Location Map Scanning) */
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar {
+  animation: radarSweep 4s linear infinite;
+}
+
+/* 5. Skeleton Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* 6. Floating Card Drift (Landing Page Hero) */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatSlow 7s ease-in-out 1.5s infinite;
+}
+
+/* 7. Modal & Drawer Transitions */
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-slide-right {
+  animation: slideRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

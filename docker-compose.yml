@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  crimemind-db:
+    image: postgres:16-alpine
+    container_name: crimemind_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: crimemind
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - crimemind_pgdata:/var/lib/postgresql/data
+      - ./database/schema:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crimemind"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  crimemind-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crimemind_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@crimemind-db:5432/crimemind
+      - ENVIRONMENT=development
+      - DEBUG=True
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      crimemind-db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  crimemind_pgdata:
+    driver: local

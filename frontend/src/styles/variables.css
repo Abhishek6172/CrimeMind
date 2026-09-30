@@ -1,0 +1,89 @@
+:root {
+  /* Surface & Background Hierarchy - Deep Noir Cinematic */
+  --bg-primary: #07080B;
+  --bg-secondary: #0D0F15;
+  --bg-tertiary: #131620;
+  --bg-elevated: #181C28;
+  --bg-overlay: rgba(7, 8, 11, 0.85);
+
+  /* Glassmorphism Tokens */
+  --glass-bg-subtle: rgba(18, 22, 34, 0.45);
+  --glass-bg-card: rgba(16, 20, 30, 0.70);
+  --glass-bg-elevated: rgba(22, 27, 42, 0.80);
+  --glass-bg-active: rgba(255, 42, 66, 0.08);
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.20);
+  --border-crimson: rgba(255, 42, 66, 0.35);
+  --border-crimson-bright: #FF2A42;
+
+  /* CrimeMind Crimson / Neon Palette */
+  --crimson-core: #E50914;
+  --crimson-neon: #FF2A42;
+  --crimson-bright: #FF4D63;
+  --crimson-glow: rgba(255, 42, 66, 0.35);
+  --crimson-glow-strong: rgba(255, 42, 66, 0.65);
+  --crimson-muted: rgba(229, 9, 20, 0.15);
+  --crimson-dark: #66060C;
+
+  /* Accent & Intelligence Semantic Colors */
+  --accent-cyan: #00D4FF;
+  --accent-cyan-glow: rgba(0, 212, 255, 0.35);
+  --accent-amber: #FFB020;
+  --accent-amber-glow: rgba(255, 176, 32, 0.30);
+  --accent-emerald: #00E699;
+  --accent-emerald-glow: rgba(0, 230, 153, 0.30);
+  --accent-purple: #9D4EDD;
+
+  /* Verification Badges */
+  --badge-raw-bg: rgba(255, 255, 255, 0.06);
+  --badge-raw-text: #A0A5B5;
+  --badge-raw-border: rgba(255, 255, 255, 0.12);
+
+  --badge-ai-bg: rgba(255, 42, 66, 0.12);
+  --badge-ai-text: #FF667A;
+  --badge-ai-border: rgba(255, 42, 66, 0.40);
+
+  --badge-verified-bg: rgba(0, 230, 153, 0.12);
+  --badge-verified-text: #2EE5A3;
+  --badge-verified-border: rgba(0, 230, 153, 0.40);
+
+  /* Typography */
+  --text-primary: #F0F2F8;
+  --text-secondary: #9DA3B4;
+  --text-tertiary: #656B7D;
+  --text-inverse: #07080B;
+  --text-crimson: #FF4D63;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Manrope', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Shadows & Depth */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.7);
+  --shadow-crimson-sm: 0 0 12px rgba(255, 42, 66, 0.25);
+  --shadow-crimson-md: 0 0 25px rgba(255, 42, 66, 0.45);
+  --shadow-crimson-lg: 0 0 45px rgba(255, 42, 66, 0.65);
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout Constants */
+  --navbar-height: 68px;
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 72px;
+}

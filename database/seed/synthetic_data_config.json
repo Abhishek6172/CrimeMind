@@ -1,0 +1,93 @@
+{
+  "project_name": "CrimeMind",
+  "version": "1.0.0",
+  "description": "Synthetic generation configuration for CrimeMind demonstration and testing data",
+  "disclaimer": "All identities, records, locations, vehicles, and communications generated are 100% synthetic and fictional.",
+  "target_counts": {
+    "users": 100,
+    "locations": 1200,
+    "cctv_cameras": 2500,
+    "persons": 10000,
+    "vehicles": 5000,
+    "cases": 2000,
+    "incidents": 5000,
+    "case_persons": 12000,
+    "evidence": 20000,
+    "statements": 8000,
+    "relationships": 50000,
+    "call_records": 50000,
+    "transactions": 50000,
+    "cctv_detections": 100000,
+    "person_locations": 40000,
+    "timeline_events": 100000,
+    "agent_runs": 2000,
+    "ai_findings": 4000,
+    "investigation_notes": 8000,
+    "audit_logs": 15000
+  },
+  "geography": {
+    "city": "Metropolis Central",
+    "metro_areas": [
+      "Downtown Commercial District",
+      "Northshore Heights",
+      "Industrial Waterfront & Port",
+      "Eastside Arts Corridor",
+      "West End Suburbs",
+      "South Bay Logistics Hub",
+      "Midtown Financial Plaza",
+      "Old Town Heritage Ward",
+      "Silver Lake Tech Park",
+      "Harbor Point Terminal"
+    ],
+    "bounding_box": {
+      "lat_min": 40.6800,
+      "lat_max": 40.8800,
+      "lon_min": -74.0500,
+      "lon_max": -73.8500
+    }
+  },
+  "scenarios": [
+    {
+      "id": "SCENARIO_1_BURGLARY_NETWORK",
+      "name": "The Midnight Syndicate - Serial High-Value Burglaries",
+      "description": "Organized criminal crew systematically hitting luxury residential estates and boutique jewellers with identical MO.",
+      "kingpin_alias": "Viper",
+      "mastermind_alias": "Ghost",
+      "operatives": ["Ray 'Crowbar' Miller", "Leo 'Nails' Ortiz", "Derrick 'Shadow' Hayes"],
+      "linked_cases": 8
+    },
+    {
+      "id": "SCENARIO_2_VEHICLE_NEAR_INCIDENTS",
+      "name": "Phantom Charger - Gateway Vehicle Across 4 Robberies",
+      "description": "Dark Gray 2021 Dodge Charger (SYN-7X91) logged by automated CCTV cameras within 30 minutes of multiple unrelated incidents.",
+      "vehicle_plate": "SYN-7X91",
+      "registered_owner": "Damian Cross",
+      "linked_incidents": 4
+    },
+    {
+      "id": "SCENARIO_3_CENTRAL_BROKER_COMMUNICATIONS",
+      "name": "Cipher Nexus - The Information Broker",
+      "description": "Evelyn Reed acts as an untracked facilitator communicating with 7 prime suspects across 5 unrelated ongoing active investigations.",
+      "broker_name": "Evelyn Reed",
+      "broker_phone": "+1-555-019-4821",
+      "suspect_contacts": 7
+    },
+    {
+      "id": "SCENARIO_4_FINANCIAL_TO_PHYSICAL_CRIME",
+      "name": "Pre-Strike Funding to Vault Infiltration",
+      "description": "Trevor Bennett receives a $25,000 synthetic wire transfer, triggers an ATM withdrawal 4 miles away, pings a nearby cell tower, and appears on CCTV outside the vault within 3 hours.",
+      "operative_name": "Trevor Bennett",
+      "amount": 25000.00,
+      "target_case": "CASE-2024-0771"
+    },
+    {
+      "id": "SCENARIO_5_CROSS_CASE_HISTORICAL_LINK",
+      "name": "The Recidivist Anchor - 2021 Cold Case to 2024 Heist",
+      "description": "Viktor Orlov, convicted in closed 2021 Case CASE-2021-0044, resurfaces in active 2024 investigation CASE-2024-2390 with his registered Black Ford Explorer.",
+      "person_name": "Viktor Orlov",
+      "historical_case": "CASE-2021-0044",
+      "active_case": "CASE-2024-2390",
+      "vehicle_plate": "SYN-4K82"
+    }
+  ]
+}
