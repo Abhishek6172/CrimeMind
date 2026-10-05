@@ -1,4 +1,4 @@
-version: '3.8'
+﻿version: '3.8'
 
 services:
   crimemind-db:
@@ -23,18 +23,20 @@ services:
 
   crimemind-backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: crimemind_backend
     restart: always
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@crimemind-db:5432/crimemind
       - ENVIRONMENT=development
       - DEBUG=True
+      - PYTHONPATH=/app/agents
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./agents:/app/agents
       - ./backend/uploads:/app/uploads
     depends_on:
       crimemind-db:
@@ -44,3 +46,5 @@ services:
 volumes:
   crimemind_pgdata:
     driver: local
+
+

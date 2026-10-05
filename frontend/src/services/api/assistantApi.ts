@@ -603,17 +603,77 @@ function executeRAGSearch(userQuery: string): KnowledgeMatch {
   }
 
   // --------------------------------------------------------------------------
-  // 2. SPECIFIC SUSPECT PROFILE QUERY
+  // 2. CASE STATUS & CASE LEDGER LISTING INTENTS (HIGH PRECEDENCE)
   // --------------------------------------------------------------------------
+  const isCaseListQuery = (
+    q.includes('cases in the ledger') ||
+    q.includes('open, closed') ||
+    q.includes('open, closed, and reopened') ||
+    q.includes('show all cases') ||
+    q.includes('list all cases') ||
+    q.includes('all cases') ||
+    q.includes('case list') ||
+    q.includes('cases list') ||
+    q.includes('show cases') ||
+    q.includes('all dossiers') ||
+    q.includes('cases in ledger') ||
+    (q.includes('cases') && (q.includes('ledger') || q.includes('all') || q.includes('show') || q.includes('list')))
+  );
+
+  if (isCaseListQuery) {
+    const answer = [
+      `### Case Dossier Ledger: Classification & Status Breakdown`,
+      `All 9 officially cataloged cases across the Central Investigations Bureau:`,
+      ``,
+      `• 🟢 **OPEN DOSSIERS (Live Telemetry & Active Warrants)**:`,
+      `  - **CASE-2024-4019**: Harbor District Weapons & Synthetic Narcotics Pipeline (Critical Priority, Lead: Det. Sarah Vance)`,
+      `  - **CASE-2024-8831**: Municipal Ledger Cryptolocker Extortion Breach (High Priority, Lead: Lt. James Miller)`,
+      ``,
+      `• 🟡 **UNDER ACTIVE INVESTIGATION**:`,
+      `  - **CASE-2024-0106**: Midnight Syndicate: Belvedere Estate Burglary #7 (High Priority, Lead: Det. Sarah Vance)`,
+      `  - **CASE-2024-1100**: Midtown Jewelry Exchange Armed Robbery (Critical Priority, Lead: Lt. James Miller)`,
+      `  - **CASE-2024-0771**: First National Bank Night Vault Infiltration (Critical Priority, Lead: Det. Sarah Vance)`,
+      `  - **CASE-2024-2390**: Waterfront Terminal 4 Container Freight Diversion (High Priority, Lead: Capt. Robert Chen)`,
+      ``,
+      `• 🔴 **REOPENED COLD CASES (New Forensic Linkages)**:`,
+      `  - **CASE-2023-0100**: Belvedere Diamond Vault Breach #1 (Critical Priority, Lead: Det. Sarah Vance — Reopened via 100% laser tool-mark match)`,
+      ``,
+      `• ⚪ **CLOSED ADJUDICATED DOSSIERS**:`,
+      `  - **CASE-2021-0044**: Operation Ironclad: Harbor Logistics Freight Hijacking (High Priority, Lead: Capt. Robert Chen — Viktor Orlov Convicted)`,
+      `  - **CASE-2022-0912**: Metro Transit Armored Truck Highway Ambush (Critical Priority, Lead: Capt. Robert Chen — Conviction Secured)`
+    ].join('\n');
+
+    return {
+      answer,
+      agents: ['Planner', 'Case Dossier Agent', 'Synthesis Agent'],
+      sources: ['Central Investigative Ledger'],
+      citations: CASES_REGISTRY.map(c => ({ title: `${c.caseNumber}`, link: c.caseCode, type: 'CASE' }))
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // 3. SPECIFIC SUSPECT PROFILE QUERY
+  // --------------------------------------------------------------------------
+  const stopWords = new Set([
+    'the', 'a', 'an', 'and', 'or', 'in', 'on', 'at', 'to', 'from', 'of', 'for', 'with', 'by',
+    'show', 'list', 'all', 'open', 'closed', 'reopened', 'case', 'cases', 'ledger', 'evidence',
+    'what', 'who', 'how', 'tell', 'me', 'about', 'records', 'details', 'dossier', 'status'
+  ]);
+
   const matchedSuspect = SUSPECTS_REGISTRY.find(s => {
     const lowerName = s.fullName.toLowerCase();
-    const aliasParts = s.alias.toLowerCase().split(/[\s/]+/).filter(a => a.length > 2);
+    const firstName = s.fullName.split(' ')[0].toLowerCase();
+    const lastName = s.fullName.split(' ')[1]?.toLowerCase();
+    const aliasTokens = s.alias
+      .toLowerCase()
+      .split(/[\s/()"]+/)
+      .filter(a => a.length > 2 && !stopWords.has(a));
+
     return (
       q.includes(lowerName) ||
-      (s.fullName.split(' ')[0] && q.includes(s.fullName.split(' ')[0].toLowerCase()) && (q.includes('profile') || q.includes('who is') || q.includes('suspect') || q.includes('evidence on') || q.includes('tell me about'))) ||
-      (s.fullName.split(' ')[1] && q.includes(s.fullName.split(' ')[1].toLowerCase())) ||
-      aliasParts.some(a => q.includes(a)) ||
-      (s.id && q.includes(s.id))
+      (lastName && lastName.length > 3 && q.includes(lastName) && (q.includes('suspect') || q.includes('profile') || q.includes('dossier') || q.includes('who is'))) ||
+      (firstName && (q.includes('who is ' + firstName) || q.includes('profile ' + firstName) || q.includes('about ' + firstName))) ||
+      aliasTokens.some(a => q.includes(a))
     );
   });
 

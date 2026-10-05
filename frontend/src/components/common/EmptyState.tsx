@@ -7,6 +7,7 @@ export interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   onAction?: () => void;
+  action?: React.ReactNode;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
+  action,
   className = '',
 }) => {
   return (
@@ -54,14 +56,18 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
         {title}
       </h3>
-      <p style={{ maxWidth: '420px', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: actionLabel ? '1.5rem' : 0 }}>
+      <p style={{ maxWidth: '420px', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: (actionLabel || action) ? '1.5rem' : 0 }}>
         {description}
       </p>
 
-      {actionLabel && onAction && (
-        <Button variant="crimson" onClick={onAction}>
-          {actionLabel}
-        </Button>
+      {action ? (
+        action
+      ) : (
+        actionLabel && onAction && (
+          <Button variant="crimson" onClick={onAction}>
+            {actionLabel}
+          </Button>
+        )
       )}
     </div>
   );

@@ -176,7 +176,7 @@ CrimeMind operates under strict evidentiary and ethical principles:
 The engine is imported directly by the CrimeMind FastAPI backend (`backend/app/services/langgraph_service.py`):
 
 ```python
-from app.graph.master_graph import (
+from engine.graph.master_graph import (
     run_investigation,
     stream_investigation,
     run_agent,
@@ -212,8 +212,8 @@ To execute an investigative inquiry directly from the command line:
 
 ```bash
 # Standard investigation run
-python -m app.main --query "Find connections between Marcus Vance, vehicle SYN-7X91, and previous cases."
+python -m engine.main --query "Find connections between Marcus Vance, vehicle SYN-7X91, and previous cases."
 
 # Real-time token and progress streaming demo
-python -m app.main --query "Where was vehicle SYN-7X91 sighted near the harbor?" --stream
+python -m engine.main --query "Where was vehicle SYN-7X91 sighted near the harbor?" --stream
 ```

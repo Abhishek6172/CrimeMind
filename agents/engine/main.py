@@ -25,7 +25,7 @@ async def main():
     parser.add_argument(
         "--query",
         type=str,
-        default="Find connections between Marcus Vance, vehicle SYN-7X91, and previous cases.",
+        default="Show case ledger status counts from PostgreSQL.",
         help="Natural language investigative query"
     )
     parser.add_argument("--case-id", type=str, default=None, help="Target case UUID")

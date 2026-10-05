@@ -32,7 +32,7 @@ def aggregate_multi_modal_timeline(
     for inc in incidents:
         raw_events.append({
             "event_id": inc.get("incident_id", str(uuid.uuid4())),
-            "timestamp": inc.get("occurred_at") or "2024-08-17T21:40:00Z",
+            "timestamp": inc.get("occurred_at"),
             "source_type": "INCIDENT",
             "title": f"Incident Reported: {inc.get('crime_type')}",
             "description": inc.get("description", "Reported incident occurrence"),
@@ -45,7 +45,7 @@ def aggregate_multi_modal_timeline(
     for det in detections:
         raw_events.append({
             "event_id": det.get("detection_id", str(uuid.uuid4())),
-            "timestamp": det.get("detected_at") or "2024-08-17T21:41:18Z",
+            "timestamp": det.get("detected_at"),
             "source_type": "CCTV",
             "title": f"CCTV Optical Capture ({det.get('camera_code')})",
             "description": f"Detected {det.get('detected_object')} with confidence {det.get('confidence', 0.90):.2f} at {det.get('location_name', 'surveillance zone')}",
@@ -58,7 +58,7 @@ def aggregate_multi_modal_timeline(
     for cal in calls:
         raw_events.append({
             "event_id": cal.get("call_id", str(uuid.uuid4())),
-            "timestamp": cal.get("call_timestamp") or "2024-08-17T20:15:00Z",
+            "timestamp": cal.get("call_timestamp"),
             "source_type": "CALL",
             "title": f"Encrypted Telephony Intercept ({cal.get('call_type')})",
             "description": f"Communication session duration {cal.get('duration_seconds')}s between endpoints {cal.get('caller_phone')} and {cal.get('receiver_phone')}",
@@ -71,7 +71,7 @@ def aggregate_multi_modal_timeline(
     for tx in txs:
         raw_events.append({
             "event_id": tx.get("transaction_id", str(uuid.uuid4())),
-            "timestamp": tx.get("transaction_timestamp") or "2024-08-16T14:32:00Z",
+            "timestamp": tx.get("transaction_timestamp"),
             "source_type": "TRANSACTION",
             "title": f"Financial Transfer ({tx.get('transaction_type')})",
             "description": f"Wire transfer amount ${tx.get('amount', 0):,.2f} USD flagged suspicious: {tx.get('is_flagged_suspicious')}",
@@ -84,13 +84,16 @@ def aggregate_multi_modal_timeline(
     for ev in evd_items:
         raw_events.append({
             "event_id": ev.get("evidence_id", str(uuid.uuid4())),
-            "timestamp": ev.get("collected_at") or "2024-08-17T22:00:00Z",
+            "timestamp": ev.get("collected_at"),
             "source_type": "EVIDENCE",
             "title": f"Evidence Vault Intake: {ev.get('title')}",
             "description": f"Secure intake of {ev.get('evidence_type')} (Hash: {ev.get('hash', '')[:16]}...)",
             "confidence": 1.0,
             "evidence_id": ev.get("evidence_id")
         })
+
+    # Drop records without source timestamps rather than inventing chronology.
+    raw_events = [event for event in raw_events if event.get("timestamp")]
 
     # Sort strictly chronologically
     def parse_dt(e):

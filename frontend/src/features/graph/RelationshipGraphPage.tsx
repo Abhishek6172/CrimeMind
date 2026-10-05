@@ -503,10 +503,10 @@ export const RelationshipGraphPage: React.FC = () => {
                 return (
                   <g key={edge.id}>
                     <line
-                      x1={sourceNode.x}
-                      y1={sourceNode.y}
-                      x2={targetNode.x}
-                      y2={targetNode.y}
+                      x1={sourceNode.x ?? 0}
+                      y1={sourceNode.y ?? 0}
+                      x2={targetNode.x ?? 0}
+                      y2={targetNode.y ?? 0}
                       stroke={
                         isPathActive
                           ? '#FF2A42'
@@ -521,11 +521,12 @@ export const RelationshipGraphPage: React.FC = () => {
 
                     {/* Edge Label */}
                     <text
-                      x={(sourceNode.x + targetNode.x) / 2}
-                      y={(sourceNode.y + targetNode.y) / 2 - 6}
-                      fill={isPathActive ? '#FF2A42' : 'rgba(255, 255, 255, 0.4)'}
+                      x={((sourceNode.x ?? 0) + (targetNode.x ?? 0)) / 2}
+                      y={((sourceNode.y ?? 0) + (targetNode.y ?? 0)) / 2 - 6}
+                      fill={isPathActive ? '#FF2A42' : '#FFFFFF'}
                       fontSize="9"
                       fontFamily="monospace"
+                      fontWeight="600"
                       textAnchor="middle"
                       style={{ pointerEvents: 'none' }}
                     >
@@ -583,7 +584,7 @@ export const RelationshipGraphPage: React.FC = () => {
                     {/* Node Label */}
                     <text
                       y={nSize + 14}
-                      fill="var(--color-text-primary)"
+                      fill="#FFFFFF"
                       fontSize="11"
                       fontWeight="600"
                       textAnchor="middle"
@@ -595,7 +596,7 @@ export const RelationshipGraphPage: React.FC = () => {
                     {node.subLabel && (
                       <text
                         y={nSize + 26}
-                        fill="var(--color-text-muted)"
+                        fill="#E2E8F0"
                         fontSize="9"
                         textAnchor="middle"
                         style={{ pointerEvents: 'none' }}

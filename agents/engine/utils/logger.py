@@ -1,7 +1,7 @@
 import logging
 import sys
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -29,13 +29,13 @@ class AgentExecutionTimer:
         self.duration_ms: int = 0
 
     def __enter__(self):
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
         logger.info(f"[*] [{self.agent_name}] Started task: '{self.task[:80]}'")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.start_time:
-            delta = datetime.utcnow() - self.start_time
+            delta = datetime.now(timezone.utc) - self.start_time
             self.duration_ms = int(delta.total_seconds() * 1000)
         status = "FAILED" if exc_type else "COMPLETED"
         logger.info(f"[+] [{self.agent_name}] {status} in {self.duration_ms}ms")

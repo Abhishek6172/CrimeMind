@@ -70,9 +70,7 @@ class GeminiLLMClient(BaseLLMClient):
         max_tokens: int = 2048
     ) -> str:
         if not self.api_key:
-            return await DeterministicForensicLLMClient(self.model_name).generate_text(
-                prompt, system_prompt, temperature, max_tokens
-            )
+            raise RuntimeError("LLM provider API key is not configured.")
 
         try:
             async with httpx.AsyncClient(timeout=settings.AGENT_TIMEOUT_SECONDS) as client:
@@ -119,10 +117,8 @@ class GeminiLLMClient(BaseLLMClient):
                     data = resp.json()
                     return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
-            logger.warning(f"Gemini API request failed ({e}), falling back to deterministic engine.")
-            return await DeterministicForensicLLMClient(self.model_name).generate_text(
-                prompt, system_prompt, temperature, max_tokens
-            )
+            logger.exception("Configured LLM provider request failed")
+            raise RuntimeError(f"Configured LLM provider request failed: {e}") from e
 
     async def generate_json(
         self,
@@ -141,10 +137,8 @@ class GeminiLLMClient(BaseLLMClient):
             cleaned = cleaned[:-3]
         try:
             return json.loads(cleaned.strip())
-        except Exception:
-            return await DeterministicForensicLLMClient(self.model_name).generate_json(
-                prompt, system_prompt, temperature
-            )
+        except Exception as exc:
+            raise ValueError("Configured LLM provider returned invalid JSON.") from exc
 
     async def stream_tokens(
         self,
@@ -179,9 +173,7 @@ class OpenAILLMClient(BaseLLMClient):
         max_tokens: int = 2048
     ) -> str:
         if not self.api_key:
-            return await DeterministicForensicLLMClient(self.model_name).generate_text(
-                prompt, system_prompt, temperature, max_tokens
-            )
+            raise RuntimeError("LLM provider API key is not configured.")
 
         messages = []
         if system_prompt:
@@ -210,10 +202,8 @@ class OpenAILLMClient(BaseLLMClient):
                 data = resp.json()
                 return data["choices"][0]["message"]["content"]
         except Exception as e:
-            logger.warning(f"OpenAI/OpenRouter call failed ({e}), using deterministic engine.")
-            return await DeterministicForensicLLMClient(self.model_name).generate_text(
-                prompt, system_prompt, temperature, max_tokens
-            )
+            logger.exception("Configured LLM provider request failed")
+            raise RuntimeError(f"Configured LLM provider request failed: {e}") from e
 
     async def generate_json(
         self,
@@ -232,10 +222,8 @@ class OpenAILLMClient(BaseLLMClient):
             cleaned = cleaned[:-3]
         try:
             return json.loads(cleaned.strip())
-        except Exception:
-            return await DeterministicForensicLLMClient(self.model_name).generate_json(
-                prompt, system_prompt, temperature
-            )
+        except Exception as exc:
+            raise ValueError("Configured LLM provider returned invalid JSON.") from exc
 
     async def stream_tokens(
         self,
@@ -264,9 +252,7 @@ class AnthropicLLMClient(BaseLLMClient):
         max_tokens: int = 2048
     ) -> str:
         if not self.api_key:
-            return await DeterministicForensicLLMClient(self.model_name).generate_text(
-                prompt, system_prompt, temperature, max_tokens
-            )
+            raise RuntimeError("LLM provider API key is not configured.")
 
         headers = {
             "x-api-key": self.api_key,
@@ -288,10 +274,8 @@ class AnthropicLLMClient(BaseLLMClient):
                 data = resp.json()
                 return data["content"][0]["text"]
         except Exception as e:
-            logger.warning(f"Anthropic call failed ({e}), using deterministic engine.")
-            return await DeterministicForensicLLMClient(self.model_name).generate_text(
-                prompt, system_prompt, temperature, max_tokens
-            )
+            logger.exception("Configured LLM provider request failed")
+            raise RuntimeError(f"Configured LLM provider request failed: {e}") from e
 
     async def generate_json(
         self,
@@ -309,10 +293,8 @@ class AnthropicLLMClient(BaseLLMClient):
             cleaned = cleaned[:-3]
         try:
             return json.loads(cleaned.strip())
-        except Exception:
-            return await DeterministicForensicLLMClient(self.model_name).generate_json(
-                prompt, system_prompt, temperature
-            )
+        except Exception as exc:
+            raise ValueError("Configured LLM provider returned invalid JSON.") from exc
 
     async def stream_tokens(
         self,
@@ -346,161 +328,13 @@ class DeterministicForensicLLMClient(BaseLLMClient):
         temperature: float = 0.2,
         max_tokens: int = 2048
     ) -> str:
-        prompt_lower = prompt.lower()
-
-        # Synthesis generation
-        if "synthesis" in prompt_lower or "final investigative summary" in prompt_lower or "briefing" in prompt_lower:
-            if any(k in prompt_lower for k in ["who are the suspects", "all suspects", "list suspects", "suspects", "perpetrators", "persons of interest"]):
-                return (
-                    "### Active Suspects & Persons of Interest (RAG Extraction)\n\n"
-                    "• **Marcus 'Viper' Vance** (Risk: Extreme) — Fencing coordinator & logistics organizer; linked to Belvedere Estate burglaries (CASE-2024-0106); pawn shop at 742 St. Marks Place.\n"
-                    "• **Julian 'Ghost' Drake** (Risk: High) — Master safecracker & optical laser alarm specialist; 98% tool mark match on severed fiber alarm leads (EVD-2024-00192); White Chevrolet locksmith van (SYN-9B14).\n"
-                    "• **Damian 'Apex' Cross** (Risk: High) — Armed robbery wheelman; registered owner of Dark Gray 2021 Dodge Charger (SYN-7X91); optical sighting at 92 km/h (EVD-2024-00341); Lexington Ave tower CDR ping (EVD-2024-01188).\n"
-                    "• **Evelyn 'Cipher' Reed** (Risk: Extreme) — Central communications broker & offshore financier; intercepted encrypted VoIP tap (EVD-2024-00892); 480 telecom calls coordinating Vance, Cross, Bennett, and Orlov.\n"
-                    "• **Trevor 'Spike' Bennett** (Risk: High) — Bank vault penetration operative; $25,000 Cayman escrow wire (EVD-2024-00512); rear alley CAM-BK-003 facial match at 02:00 UTC (CASE-2024-0771).\n"
-                    "• **Viktor 'Old Fox' Orlov** (Risk: Extreme) — Recidivist cargo heist boss; convicted in CASE-2021-0044; forged customs manifest (EVD-2024-01042); Black Ford Explorer (SYN-4K82)."
-                )
-
-            if "drake" in prompt_lower or "julian" in prompt_lower:
-                return (
-                    "### Suspect Intelligence Dossier: Julian Drake (*'Ghost / The Keymaster'*)\n\n"
-                    "• **Synthetic National ID**: SYN-NAT-JD34019 | **Risk Classification**: **HIGH**\n"
-                    "• **Investigative Role**: Master Safecracker & Electronic Security Bypass Specialist for Midnight Syndicate.\n"
-                    "• **Known Base**: 112 Highland Blvd, Metropolis Central | **Phone**: +1-555-412-9901\n"
-                    "• **Vehicle**: SYN-9B14 (White 2019 Chevrolet Express Locksmith Van).\n"
-                    "• **Associated Cases**: CASE-2024-0106 (Belvedere Burglary) and CASE-2023-0100 (Belvedere Vault #1 Reopened Cold Case).\n"
-                    "• **Forensic Evidence**:\n"
-                    "  - EVD-2024-00192: Laser-severed fiber optic alarm lead fragments (98% confidence match to seized thermal cutter).\n"
-                    "  - EVD-2024-00781: Obsidian micro-paint transfer on forced window frame matching locksmith tool kit.\n"
-                    "  - EVD-2023-00049: Seized diamond core drill bit from reopened Belvedere vault breach."
-                )
-
-            if "vance" in prompt_lower or "marcus" in prompt_lower or "viper" in prompt_lower:
-                return (
-                    "### Suspect Intelligence Dossier: Marcus Vance (*'Viper / The Fence'*)\n\n"
-                    "• **Synthetic National ID**: SYN-NAT-MV89421 | **Risk Classification**: **EXTREME**\n"
-                    "• **Investigative Role**: Syndicate Fencing Coordinator & Burglary Logistics Organizer.\n"
-                    "• **Known Base**: 742 St. Marks Place pawn shop, Metropolis Central | **Phone**: +1-555-882-1902\n"
-                    "• **Associated Cases**: CASE-2024-0106 (Belvedere Estate Burglary) and CASE-2023-0100 (Reopened Cold Case).\n"
-                    "• **Key Evidence & Telemetry**:\n"
-                    "  - Pawn transaction ledgers tracking liquidated jewelry within 48h of residential breaches.\n"
-                    "  - Encrypted telecom logs coordinating entry timings with locksmith Julian Drake.\n"
-                    "  - Clandestine VoIP linkages with financial broker Evelyn Reed."
-                )
-
-            if "cross" in prompt_lower or "damian" in prompt_lower or "apex" in prompt_lower:
-                return (
-                    "### Suspect Intelligence Dossier: Damian Cross (*'Apex'*)\n\n"
-                    "• **Synthetic National ID**: SYN-NAT-DC10928 | **Risk Classification**: **HIGH**\n"
-                    "• **Investigative Role**: Armed Robbery Getaway Driver & Tactical Field Wheelman.\n"
-                    "• **Known Base**: 89 Quarry Lane, Metropolis Central | **Phone**: +1-555-667-2019\n"
-                    "• **Registered Vehicle**: SYN-7X91 (Dark Gray 2021 Dodge Charger SRT, tinted windows).\n"
-                    "• **Associated Cases**: CASE-2024-1100 (Midtown Jewelry Exchange Armed Robbery).\n"
-                    "• **Forensic Evidence & Telemetry**:\n"
-                    "  - EVD-2024-00341: Optical CCTV capture departing Midtown at 92 km/h with obscured plate.\n"
-                    "  - EVD-2024-01188: Lexington Ave cell tower CDR ping establishing physical presence 12 mins prior to robbery.\n"
-                    "  - CAM-DT-014 optical OCR reconstruction confirming plate SYN-7X91."
-                )
-
-            if "reed" in prompt_lower or "evelyn" in prompt_lower or "cipher" in prompt_lower:
-                return (
-                    "### Suspect Intelligence Dossier: Evelyn Reed (*'Cipher / The Broker'*)\n\n"
-                    "• **Synthetic National ID**: SYN-NAT-ER92014 | **Risk Classification**: **EXTREME**\n"
-                    "• **Investigative Role**: Central Communications Nexus & Clandestine Offshore Financial Broker.\n"
-                    "• **Known Base**: 340 Sunset Parkway, Penthouse 14 | **Phone**: +1-555-019-4821\n"
-                    "• **Associated Cases**: CASE-2024-0771 (First National Bank Vault) and CASE-2024-2390 (Terminal 4 Freight Theft).\n"
-                    "• **Forensic Evidence & Telemetry**:\n"
-                    "  - EVD-2024-00892: Intercepted encrypted VoIP wiretap transmitting bank vault layouts to Trevor Bennett.\n"
-                    "  - EVD-2024-00512: Telecommunications log correlating with $25,000 Cayman escrow wire 40 mins prior.\n"
-                    "  - 480 recorded telecommunications linking Vance, Cross, Bennett, and Orlov."
-                )
-
-            if "bennett" in prompt_lower or "trevor" in prompt_lower or "spike" in prompt_lower:
-                return (
-                    "### Suspect Intelligence Dossier: Trevor Bennett (*'Spike'*)\n\n"
-                    "• **Synthetic National ID**: SYN-NAT-TB55190 | **Risk Classification**: **HIGH**\n"
-                    "• **Investigative Role**: Vault Penetration Operative & Rapid Withdrawal Cash Mule.\n"
-                    "• **Known Base**: 52 Atlantic Ave, Metropolis Central | **Phone**: +1-555-334-9182\n"
-                    "• **Associated Cases**: CASE-2024-0771 (First National Bank Vault Infiltration).\n"
-                    "• **Forensic Evidence & Telemetry**:\n"
-                    "  - EVD-2024-00512: $25,000 offshore wire receipt from Cayman entity Global Escrow LLC 3.5h before breach.\n"
-                    "  - Camera CAM-BK-003: Facial recognition match in rear bank alley at 02:00 UTC.\n"
-                    "  - Abandoned concrete core drilling equipment on vault premises."
-                )
-
-            if "orlov" in prompt_lower or "viktor" in prompt_lower or "old fox" in prompt_lower:
-                return (
-                    "### Suspect Intelligence Dossier: Viktor Orlov (*'Old Fox'*)\n\n"
-                    "• **Synthetic National ID**: SYN-NAT-VO77102 | **Risk Classification**: **EXTREME**\n"
-                    "• **Investigative Role**: Recidivist Freight Hijacking Boss & Maritime Smuggling Coordinator.\n"
-                    "• **Known Base**: 410 Pier Rd, Metropolis Central | **Phone**: +1-555-901-7723\n"
-                    "• **Registered Vehicle**: SYN-4K82 (Black 2018 Ford Explorer).\n"
-                    "• **Associated Cases**: CASE-2024-2390 (Terminal 4 Freight Theft) and CASE-2021-0044 (Operation Ironclad - Convicted).\n"
-                    "• **Forensic Evidence & Telemetry**:\n"
-                    "  - EVD-2024-01042: Falsified customs manifest diverting Terminal 4 shipping container #T4-8921.\n"
-                    "  - Camera CAM-PT-028: Optical sighting of Black Ford Explorer (SYN-4K82) at Pier 42.\n"
-                    "  - Prior 2021 federal conviction for armed cargo convoy hijacking."
-                )
-
-            if any(k in prompt_lower for k in ["vehicle", "charger", "syn-7x91", "syn-4k82", "syn-9b14", "car", "plate"]):
-                return (
-                    "### Tracked Syndicate Vehicles (ANPR & Registry Telemetry)\n\n"
-                    "• **Dodge Charger SRT [SYN-7X91]** — Dark Gray 2021 Sedan (VIN: 1SYN2DGE8912301X4)\n"
-                    "  - **Owner**: Damian Cross ('Apex') | **Status**: Armed robbery getaway vehicle.\n"
-                    "  - **Telemetry**: Logged on CAM-DT-014 departing at 92 km/h with obscured plate (EVD-2024-00341); Lexington Ave CDR ping match (EVD-2024-01188).\n"
-                    "  - **Associated Case**: CASE-2024-1100 (Midtown Jewelry Robbery).\n\n"
-                    "• **Ford Explorer [SYN-4K82]** — Black 2018 SUV (VIN: 1SYN1FRD4892019Y9)\n"
-                    "  - **Owner**: Viktor Orlov ('Old Fox') | **Status**: Active waterfront surveillance target.\n"
-                    "  - **Telemetry**: Logged entering Terminal 4 Gate 8 at Pier 42 (CAM-PT-028).\n"
-                    "  - **Associated Cases**: CASE-2024-2390 & CASE-2021-0044.\n\n"
-                    "• **Chevrolet Express Locksmith Van [SYN-9B14]** — White 2019 Van (VIN: 1SYN3CHV7710294Z1)\n"
-                    "  - **Owner**: Julian Drake ('Ghost') | **Status**: Commercial locksmith utility transport.\n"
-                    "  - **Telemetry**: Sighted within 3 blocks of 8 Belvedere estate breaches; carries key cutting & laser tooling.\n"
-                    "  - **Associated Cases**: CASE-2024-0106 & CASE-2023-0100."
-                )
-
-            if any(k in prompt_lower for k in ["evidence", "exhibit", "laser", "cutter", "drill", "manifest", "wire"]):
-                return (
-                    "### Central Forensic Evidence Repository (Verified Exhibits)\n\n"
-                    "• **EVD-2024-00192**: Laser cut fiber optic alarm lead fragments (CSU Lab, Conf: 98%) — 96.4% tool mark match to Julian Drake's seized thermal cutter [CASE-2024-0106].\n"
-                    "• **EVD-2024-00341**: CCTV optical capture of Dodge Charger SYN-7X91 accelerating at 92 km/h (CAM-DT-014, Conf: 94%) — registered to Damian Cross [CASE-2024-1100].\n"
-                    "• **EVD-2024-00512**: $25,000 Cayman escrow wire transfer receipt credited to Trevor Bennett (FinCEN, Conf: 100%) [CASE-2024-0771].\n"
-                    "• **EVD-2024-00781**: High-resolution macro photo of forced window frame with obsidian paint transfer matching locksmith kit (Conf: 96%) [CASE-2024-0106].\n"
-                    "• **EVD-2024-00892**: Federal VoIP wiretap audio recording between Evelyn Reed and Trevor Bennett detailing vault layout (Conf: 99%) [CASE-2024-0771].\n"
-                    "• **EVD-2024-01042**: Waterfront Terminal 4 falsified customs manifest diverting container #T4-8921 linked to Viktor Orlov (Conf: 97%) [CASE-2024-2390].\n"
-                    "• **EVD-2024-01188**: Lexington Ave cell tower CDR antenna sector ping establishing Damian Cross presence 12 mins prior to robbery (Conf: 95%) [CASE-2024-1100].\n"
-                    "• **EVD-2024-01305**: Pier 42 thermal night vision video feed showing crate offloading from maritime tug (Conf: 92%) [CASE-2024-4019].\n"
-                    "• **EVD-2023-00049**: Seized diamond core drill bit & spectrographic assay from cold case Belvedere vault (Conf: 98%) — 100% metallurgical match to Julian Drake [CASE-2023-0100]."
-                )
-
-            if any(k in prompt_lower for k in ["open", "closed", "reopened", "status", "cases"]):
-                return (
-                    "### Case Ledger Classification & Status\n\n"
-                    "• 🟢 **OPEN** (2 cases):\n"
-                    "  - **CASE-2024-4019**: Harbor District Contraband & Weapons Pipeline (Lead: Inv. Rachel Adams, Priority: High)\n"
-                    "  - **CASE-2024-8831**: Sovereign Logistics Cryptolocker Extortion (Lead: Det. Sarah Vance, Priority: Medium)\n"
-                    "• 🟡 **UNDER INVESTIGATION** (4 cases):\n"
-                    "  - **CASE-2024-0106**: Belvedere Estate High-Value Residential Burglaries (Lead: Det. Sarah Vance, Priority: Critical)\n"
-                    "  - **CASE-2024-1100**: Midtown Grand Central Diamond Exchange Armed Robbery (Lead: Inv. Marcus Reed, Priority: Critical)\n"
-                    "  - **CASE-2024-0771**: First National Bank Underground Vault Breach (Lead: Det. Sarah Vance, Priority: Critical)\n"
-                    "  - **CASE-2024-2390**: Waterfront Terminal 4 Container Yard Cargo Theft (Lead: Inv. Marcus Reed, Priority: High)\n"
-                    "• 🔴 **REOPENED** (1 cold case):\n"
-                    "  - **CASE-2023-0100**: Belvedere Diamond Vault Breach #1 (Reopened August 2024 after laser incision match, Priority: Critical)\n"
-                    "• ⚪ **CLOSED** (2 cases):\n"
-                    "  - **CASE-2021-0044**: Operation Ironclad - Freight Convoy Hijacking (Viktor Orlov convicted, Priority: High)\n"
-                    "  - **CASE-2022-0912**: Metro Transit Armored Truck Ambush (Closed with full asset recovery, Priority: Critical)"
-                )
-
-            return (
-                "### CrimeMind Intelligence Synthesis\n\n"
-                "• **Investigative Scope**: Cross-referenced active criminal dossiers, ANPR camera feeds, telecom CDR records, and evidence vault hashes.\n"
-                "• **Primary Syndicates**: The Midnight Syndicate (Vance, Drake), Apex Interceptor Network (Cross), Cipher Logistics Hub (Reed).\n"
-                "• **Tracked Vehicles**: Dodge Charger [SYN-7X91], Ford Explorer [SYN-4K82], Chevrolet Van [SYN-9B14].\n"
-                "• **Chain of Custody**: All 9 active evidence exhibits verified compliant with Fed. R. Evid. 902(13) cryptographic self-authentication."
-            )
-
-        # Generic reasoning output
-        return f"Investigative analysis for prompt context: Model {self.model_name} processed the evidence parameters with confidence score 0.88."
+        """Safe local mock: never invents case-specific facts or identities."""
+        return (
+            "Local mock LLM is enabled. It does not generate case-specific findings. "
+            "Use the retrieved database records as the source of truth; if no records "
+            "were retrieved, report that limitation rather than inventing people, cases, "
+            "vehicles, evidence, confidence scores, or investigative conclusions."
+        )
 
     async def generate_json(
         self,
@@ -614,13 +448,12 @@ class DeterministicForensicLLMClient(BaseLLMClient):
         # Statement agent fact extraction
         if "statement" in prompt_lower or "contradiction" in prompt_lower:
             return {
-                "extracted_people": ["Marcus Vance", "Elena Rostova"],
-                "locations": ["Harbor Terminal Gate 3", "Industrial District Warehouse"],
-                "vehicles": ["Black Dodge Charger SYN-7X91"],
-                "contradictions": [
-                    "Witness claims subject was in Uptown at 21:30, but CCTV records vehicle at Harbor Terminal at 21:28."
-                ],
-                "confidence": 0.89
+                "extracted_people": [],
+                "locations": [],
+                "vehicles": [],
+                "contradictions": [],
+                "confidence": 0.0,
+                "status": "no_extraction_without_source_text"
             }
 
         # Default fallback JSON
@@ -667,27 +500,24 @@ class LLMFactory:
         else:
             model_name = settings.REASONING_MODEL
 
-        provider = settings.DEFAULT_LLM_PROVIDER.lower()
+        provider = (settings.DEFAULT_LLM_PROVIDER or "").strip().lower()
 
         if provider == "gemini":
-            if settings.GEMINI_API_KEY:
-                return GeminiLLMClient(model_name=model_name, api_key=settings.GEMINI_API_KEY)
+            if not settings.GEMINI_API_KEY:
+                raise RuntimeError("DEFAULT_LLM_PROVIDER is 'gemini' but GEMINI_API_KEY is not configured.")
+            return GeminiLLMClient(model_name=model_name, api_key=settings.GEMINI_API_KEY)
+        if provider == "openai":
+            if not settings.OPENAI_API_KEY:
+                raise RuntimeError("DEFAULT_LLM_PROVIDER is 'openai' but OPENAI_API_KEY is not configured.")
+            return OpenAILLMClient(model_name=model_name, api_key=settings.OPENAI_API_KEY)
+        if provider == "anthropic":
+            if not settings.ANTHROPIC_API_KEY:
+                raise RuntimeError("DEFAULT_LLM_PROVIDER is 'anthropic' but ANTHROPIC_API_KEY is not configured.")
+            return AnthropicLLMClient(model_name=model_name, api_key=settings.ANTHROPIC_API_KEY)
+        if provider == "openrouter":
+            if not settings.OPENROUTER_API_KEY:
+                raise RuntimeError("DEFAULT_LLM_PROVIDER is 'openrouter' but OPENROUTER_API_KEY is not configured.")
+            return OpenAILLMClient(model_name=model_name, api_key=settings.OPENROUTER_API_KEY, is_openrouter=True)
+        if provider in {"local", "mock", "test"}:
             return DeterministicForensicLLMClient(model_name=model_name)
-
-        elif provider == "openai":
-            if settings.OPENAI_API_KEY:
-                return OpenAILLMClient(model_name=model_name, api_key=settings.OPENAI_API_KEY)
-            return DeterministicForensicLLMClient(model_name=model_name)
-
-        elif provider == "anthropic":
-            if settings.ANTHROPIC_API_KEY:
-                return AnthropicLLMClient(model_name=model_name, api_key=settings.ANTHROPIC_API_KEY)
-            return DeterministicForensicLLMClient(model_name=model_name)
-
-        elif provider == "openrouter":
-            if settings.OPENROUTER_API_KEY:
-                return OpenAILLMClient(model_name=model_name, api_key=settings.OPENROUTER_API_KEY, is_openrouter=True)
-            return DeterministicForensicLLMClient(model_name=model_name)
-
-        # Mock / Test / Fallback
-        return DeterministicForensicLLMClient(model_name=model_name)
+        raise ValueError(f"Unsupported DEFAULT_LLM_PROVIDER: {provider!r}. Configure a supported provider or explicitly choose 'mock'.")

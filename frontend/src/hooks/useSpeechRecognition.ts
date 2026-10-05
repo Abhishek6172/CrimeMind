@@ -68,11 +68,17 @@ export function useSpeechRecognition({ onResult, onEnd }: UseSpeechRecognitionOp
     }
   };
 
+  const resetTranscript = () => {
+    setTranscript('');
+  };
+
   return {
     isListening,
     transcript,
     isSupported,
+    browserSupportsSpeechRecognition: isSupported,
     startListening,
     stopListening,
+    resetTranscript,
   };
 }

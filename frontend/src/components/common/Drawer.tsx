@@ -8,6 +8,7 @@ export interface DrawerProps {
   subtitle?: string;
   children: React.ReactNode;
   width?: string | number;
+  size?: 'small' | 'medium' | 'large' | string;
   footer?: React.ReactNode;
 }
 
@@ -18,8 +19,10 @@ export const Drawer: React.FC<DrawerProps> = ({
   subtitle,
   children,
   width = '480px',
+  size,
   footer,
 }) => {
+  const actualWidth = size === 'large' ? '640px' : size === 'small' ? '360px' : width;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -51,7 +54,7 @@ export const Drawer: React.FC<DrawerProps> = ({
         className="glass-panel-elevated animate-slide-right"
         style={{
           width: '100%',
-          maxWidth: width,
+          maxWidth: actualWidth,
           height: '100%',
           backgroundColor: 'var(--bg-secondary)',
           borderLeft: '1px solid var(--border-medium)',

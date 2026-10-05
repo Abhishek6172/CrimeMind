@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
 
 class AgentSettings(BaseSettings):
@@ -82,10 +82,11 @@ class AgentSettings(BaseSettings):
     MAX_TIMELINE_EVENTS: int = Field(default=150, description="Max aggregated chronological timeline points")
     MAX_CROSS_CASE_MATCHES: int = Field(default=25, description="Max matches across historical dossiers")
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 settings = AgentSettings()

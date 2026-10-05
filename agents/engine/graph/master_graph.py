@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from typing import Dict, Any, List, Optional, AsyncGenerator
-from datetime import datetime
+from datetime import datetime, timezone
 
 from engine.graph.state import InvestigativeState, TaskItem, AgentOutputItem, TimelineItem
 from engine.graph.routing import (
@@ -41,7 +41,7 @@ class MasterInvestigativeGraph:
             query=query,
             case_id=case_id,
             user_id=user_id,
-            conversation_id=conversation_id or f"conv_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+            conversation_id=conversation_id or f"conv_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         )
 
         logger.info(f"▶ Initiating Master Investigation DAG for query: '{query}'")
@@ -95,14 +95,14 @@ class MasterInvestigativeGraph:
             query=query,
             case_id=case_id,
             user_id=user_id,
-            conversation_id=conversation_id or f"conv_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+            conversation_id=conversation_id or f"conv_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         )
 
         yield {
             "event_type": "pipeline_started",
             "agent_name": "Master Graph",
             "data": {"query": query, "case_id": case_id, "conversation_id": state.conversation_id},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         # 1. PLANNER
@@ -110,14 +110,14 @@ class MasterInvestigativeGraph:
             "event_type": "agent_started",
             "agent_name": "Planner Agent",
             "data": {"task": "Decomposing query into specialized agent tasks"},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         state = await PlannerAgent.execute(state)
         yield {
             "event_type": "agent_completed",
             "agent_name": "Planner Agent",
             "data": {"plan": state.plan, "tasks_count": len(state.tasks)},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         # 2. PARTITION STAGES
@@ -133,7 +133,7 @@ class MasterInvestigativeGraph:
                 "event_type": "agent_started",
                 "agent_name": name,
                 "data": {"task": f"Executing {name} telemetry retrieval"},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             state = await run_single_agent_safe(agent_key, state)
             out = state.agent_outputs.get(name)
@@ -141,7 +141,7 @@ class MasterInvestigativeGraph:
                 "event_type": "agent_completed",
                 "agent_name": name,
                 "data": {"status": out.status if out else "completed", "findings": out.findings if out else []},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
         # 4. STAGE 2 EXECUTION
@@ -152,7 +152,7 @@ class MasterInvestigativeGraph:
                 "event_type": "agent_started",
                 "agent_name": name,
                 "data": {"task": f"Executing {name} cross-correlation"},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             state = await run_single_agent_safe(agent_key, state)
             out = state.agent_outputs.get(name)
@@ -160,7 +160,7 @@ class MasterInvestigativeGraph:
                 "event_type": "agent_completed",
                 "agent_name": name,
                 "data": {"status": out.status if out else "completed", "findings": out.findings if out else []},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
         # 5. SYNTHESIS
@@ -168,7 +168,7 @@ class MasterInvestigativeGraph:
             "event_type": "agent_started",
             "agent_name": "Synthesis Agent",
             "data": {"task": "Deducing final multi-agent investigative briefing"},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         state = await SynthesisAgent.execute(state)
 
@@ -180,7 +180,7 @@ class MasterInvestigativeGraph:
                 "event_type": "token",
                 "agent_name": "Synthesis Agent",
                 "data": {"token": token},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             await asyncio.sleep(0.015)
 
@@ -195,7 +195,7 @@ class MasterInvestigativeGraph:
                 "citations": [c.model_dump() for c in state.citations],
                 "status": "REQUIRES HUMAN VERIFICATION"
             },
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         ConversationStore.add_turn(
@@ -286,7 +286,7 @@ def build_timeline(case_id: Optional[str] = None, person_id: Optional[str] = Non
 
 if __name__ == "__main__":
     import sys
-    query = sys.argv[1] if len(sys.argv) > 1 else "Find connections between Marcus Vance, vehicle SYN-7X91, and previous cases."
+    query = sys.argv[1] if len(sys.argv) > 1 else "Show case ledger status counts from PostgreSQL."
     print("\n" + "=" * 70)
     print("  CRIMEMIND MASTER INVESTIGATIVE GRAPH EXECUTION")
     print("=" * 70)

@@ -1,11 +1,12 @@
 from typing import List, Dict, Any, Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
+from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
 class TaskItem(BaseModel):
     """Specific task decomposed by the Planner Agent."""
-    task_id: str = Field(default_factory=lambda: f"task_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')[:17]}")
+    task_id: str = Field(default_factory=lambda: f"task_{uuid4().hex}")
     agent: str = Field(description="Name of the specialized agent to execute this task")
     objective: str = Field(description="Specific objective of the task")
     parameters: Dict[str, Any] = Field(default_factory=dict, description="Parameters extracted for the agent")
@@ -70,7 +71,7 @@ class FindingItem(BaseModel):
     supporting_evidence_ids: List[str] = Field(default_factory=list)
     confidence: float = Field(default=0.85, ge=0.0, le=1.0)
     status: str = Field(default="REQUIRES HUMAN VERIFICATION")
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class AgentOutputItem(BaseModel):
@@ -96,7 +97,7 @@ class InvestigativeState(BaseModel):
     case_id: Optional[str] = Field(default=None, description="Active case UUID or case number if targeted")
     user_id: Optional[str] = Field(default=None, description="Investigator user ID")
     conversation_id: str = Field(
-        default_factory=lambda: f"conv_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+        default_factory=lambda: f"conv_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
         description="Conversation session ID for maintaining dialogue context"
     )
 

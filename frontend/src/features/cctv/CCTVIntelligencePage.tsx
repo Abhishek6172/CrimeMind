@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../store/AppContext';
 import { cctvApi } from '../../services/api/cctvApi';
 import { CCTVFeed, CCTVRecord, CCTVReferenceMatchResult } from '../../types';
@@ -27,6 +27,7 @@ import {
 
 export const CCTVIntelligencePage: React.FC = () => {
   const { navigateTo, addToast } = useApp();
+  const cctvFileInputRef = useRef<HTMLInputElement>(null);
   const [feeds, setFeeds] = useState<CCTVFeed[]>([]);
   const [detections, setDetections] = useState<CCTVRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,10 +79,10 @@ export const CCTVIntelligencePage: React.FC = () => {
     setIsMatching(true);
     try {
       const results = await cctvApi.matchReferenceImage(
-        referenceImageType,
-        uploadedReferenceName || 'reference_target_sample.jpg'
+        uploadedReferenceName || 'reference_target_sample.jpg',
+        referenceImageType
       );
-      setMatchResults(results);
+      setMatchResults(results as any);
     } catch (err) {
       console.error('Matching error', err);
     } finally {
@@ -105,7 +106,7 @@ export const CCTVIntelligencePage: React.FC = () => {
   };
 
   const filteredDetections = detections.filter(d => {
-    const matchesFeed = selectedFeedId === 'all' || d.cameraId === selectedFeedId;
+    const matchesFeed = selectedFeedId === 'all' || d.cameraId === selectedFeedId || d.camera_id === selectedFeedId;
     const matchesType =
       filterType === 'all' ||
       (filterType === 'person' && d.detectedPersonName) ||
@@ -491,27 +492,47 @@ export const CCTVIntelligencePage: React.FC = () => {
             </button>
           </div>
 
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={cctvFileInputRef}
+            accept="image/*,video/*"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setUploadedReferenceName(file.name);
+              }
+            }}
+          />
+
           {/* Upload Simulation Area */}
           <div
             style={{
               border: '2px dashed rgba(255, 42, 66, 0.3)',
               borderRadius: '8px',
-              padding: '28px',
+              padding: '24px',
               textAlign: 'center',
               background: 'rgba(255, 42, 66, 0.02)',
               cursor: 'pointer',
             }}
-            onClick={() => {
-              setUploadedReferenceName(
-                referenceImageType === 'person'
-                  ? 'mugshot_suspect_viper_2024.jpg'
-                  : 'charger_license_plate_SYN7X91.jpg'
-              );
+            onClick={() => cctvFileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const file = e.dataTransfer.files?.[0];
+              if (file) {
+                setUploadedReferenceName(file.name);
+              }
             }}
           >
             <UploadIcon size={32} color="var(--color-crimson)" style={{ margin: '0 auto 8px auto' }} />
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              {uploadedReferenceName ? `Loaded: ${uploadedReferenceName}` : 'Click to select reference image'}
+              {uploadedReferenceName ? `Loaded: ${uploadedReferenceName}` : 'Click or drop reference image here'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
               Vector embeddings will be generated via LangGraph CCTV vision models.
@@ -537,15 +558,15 @@ export const CCTVIntelligencePage: React.FC = () => {
             <div style={{ marginTop: '12px', borderTop: '1px solid var(--color-glass-border)', paddingTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                  Search Results: {matchResults.length} Optical Matches Found
+                  Search Results: {matchResults.matches.length} Optical Matches Found
                 </span>
                 <Badge variant="crimson">ALGORITHMIC MATCH</Badge>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
-                {matchResults.map(res => (
+                {matchResults.matches.map((res, index) => (
                   <div
-                    key={res.id}
+                    key={res.detection_id || index}
                     style={{
                       background: 'rgba(255, 255, 255, 0.03)',
                       border: '1px solid var(--color-glass-border)',
@@ -558,16 +579,16 @@ export const CCTVIntelligencePage: React.FC = () => {
                   >
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                        {res.cameraName} ({res.locationName})
+                        {res.camera_name || res.camera_code || 'Metro Cam'} ({res.location_name || 'Central District'})
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                        {res.timestamp} • Frame ID: {res.frameId}
+                        {res.detected_at} • Frame ID: {res.detection_id}
                       </div>
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-crimson-bright)' }}>
-                        {(res.similarityScore * 100).toFixed(1)}% match
+                        {(res.confidence > 1 ? res.confidence : res.confidence * 100).toFixed(1)}% match
                       </div>
                       <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>Requires Verification</span>
                     </div>

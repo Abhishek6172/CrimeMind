@@ -27,7 +27,9 @@ export interface User {
 
 export interface Case {
   case_id: string;
+  id?: string;
   case_number: string;
+  caseNumber?: string;
   title: string;
   description: string;
   status: CaseStatus;
@@ -223,6 +225,8 @@ export interface CCTVCamera {
   area?: string;
   latitude?: number;
   longitude?: number;
+  hasAnomaly?: boolean;
+  activeDetectionsCount?: number;
 }
 
 export interface CCTVDetection {
@@ -538,6 +542,7 @@ export interface MovementSequence {
   id: string;
   targetName: string;
   targetType: 'PERSON' | 'VEHICLE' | string;
+  riskLevel?: PriorityLevel | string;
   hops: MovementHop[];
 }
 
