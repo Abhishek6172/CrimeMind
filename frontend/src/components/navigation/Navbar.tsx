@@ -1,6 +1,6 @@
 import React from 'react';
-import { CrimeMindLogoIcon, BellIcon, BotIcon, SearchIcon } from '../icons/Icons';
-import { Button } from '../common/Button';
+import { useApp } from '../../store/AppContext';
+import { CrimeMindLogoIcon, BellIcon, SunIcon, MoonIcon } from '../icons/Icons';
 
 export interface NavbarProps {
   activePage: string;
@@ -15,6 +15,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadAlertCount = 4,
   onOpenAssistantModal,
 }) => {
+  const { theme, toggleTheme } = useApp();
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'investigations', label: 'Investigations' },
@@ -34,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         top: 0,
         zIndex: 800,
         height: 'var(--navbar-height)',
-        backgroundColor: 'rgba(7, 8, 11, 0.88)',
+        backgroundColor: theme === 'light' ? 'rgba(255, 255, 255, 0.92)' : 'rgba(7, 8, 11, 0.88)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -52,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <CrimeMindLogoIcon size={32} />
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '-0.03em', color: '#FFF' }}>
+            <span style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
               CRIME<span style={{ color: 'var(--crimson-neon)' }}>MIND</span>
             </span>
             <span
@@ -85,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 padding: '0.45rem 0.85rem',
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 borderRadius: 'var(--radius-sm)',
                 backgroundColor: isActive ? 'rgba(255, 42, 66, 0.12)' : 'transparent',
                 border: isActive ? '1px solid rgba(255, 42, 66, 0.4)' : '1px solid transparent',
@@ -93,12 +95,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.35rem',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.color = '#FFFFFF';
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)';
               }}
             >
               <span>{item.label}</span>
@@ -122,8 +118,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         })}
       </nav>
 
-      {/* Action CTA & Assistant Launch */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      {/* Action CTA & Theme Switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <button
           onClick={() => onNavigate('alerts')}
           style={{
@@ -154,14 +150,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        <Button
-          variant="crimson"
-          size="sm"
-          icon={<BotIcon size={16} />}
-          onClick={onOpenAssistantModal || (() => onNavigate('assistant'))}
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.45rem 0.75rem',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-medium)',
+            backgroundColor: 'var(--glass-bg-card)',
+            transition: 'all var(--transition-fast)',
+          }}
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
-          Launch Assistant
-        </Button>
+          {theme === 'dark' ? <SunIcon size={16} color="var(--accent-amber)" /> : <MoonIcon size={16} color="var(--accent-purple)" />}
+          <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
       </div>
     </header>
   );

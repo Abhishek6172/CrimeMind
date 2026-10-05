@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Dict, Any, List
 from engine.graph.state import InvestigativeState, AgentOutputItem, FindingItem
 from engine.models.llm_factory import LLMFactory
@@ -26,8 +27,45 @@ class SynthesisAgent:
     async def execute(cls, state: InvestigativeState) -> InvestigativeState:
         with AgentExecutionTimer(cls.NAME, "Synthesizing multi-agent intelligence report") as timer:
             try:
-                llm = LLMFactory.get_client(role="synthesis")
                 q_lower = state.query.lower()
+                is_ledger_query = "ledger" in q_lower and any(
+                    re.search(rf"\b{token}\b", q_lower) for token in ("open", "closed", "reopened", "status")
+                )
+                if is_ledger_query and not state.case_id:
+                    case_output = state.agent_outputs.get("Case Agent")
+                    if case_output is None or case_output.status != "completed":
+                        state.final_response = (
+                            "I could not produce a case-ledger count because the PostgreSQL Case Agent "
+                            "did not complete successfully. Check the Case Agent error and database connection; "
+                            "no counts or suspect details have been inferred."
+                        )
+                        state.confidence = 0.0
+                    else:
+                        counts = case_output.data.get("status_counts", {})
+                        lines = ["### Case Ledger — PostgreSQL Results", "", "| Status | Case count |", "|---|---:|"]
+                        for status in ("open", "closed", "reopened"):
+                            if status in counts:
+                                lines.append(f"| {status} | {counts[status]} |")
+                        lines.extend(["", f"**Source:** PostgreSQL case records ({case_output.data.get('cases_retrieved', 0)} records retrieved).",
+                                      "These are recorded database statuses, not a determination of guilt or case merits."])
+                        state.final_response = "\n".join(lines)
+                        state.confidence = 1.0
+                    state.add_agent_output(AgentOutputItem(
+                        agent_name=cls.NAME, task="Synthesize PostgreSQL case-ledger counts",
+                        status="completed" if state.confidence > 0 else "partial",
+                        execution_time_ms=timer.duration_ms, confidence=state.confidence,
+                        findings=["Ledger response derived directly from Case Agent database output."],
+                        data={"ledger_response": True}
+                    ))
+                    SecurityAuditService.record_agent_run(
+                        case_id=state.case_id, agent_name=cls.NAME, task="Case Ledger Synthesis",
+                        status="completed" if state.confidence > 0 else "partial",
+                        duration_ms=timer.duration_ms, confidence=state.confidence,
+                        output_summary={"response_preview": state.final_response[:120]}
+                    )
+                    return state
+
+                llm = LLMFactory.get_client(role="synthesis")
 
                 # Generate concise synthesis grounded strictly in query and state records
                 prompt = (
@@ -44,53 +82,29 @@ class SynthesisAgent:
                 # Ensure non-empty response
                 if not final_text or len(final_text.strip()) < 20:
                     final_text = (
-                        "### CrimeMind Intelligence Briefing\n\n"
-                        "• **Investigative Scope**: Cross-referenced active criminal dossiers, ANPR feeds, and verified evidence vaults.\n"
-                        "• **Primary Syndicates**: The Midnight Syndicate (Vance, Drake), Apex Interceptor Network (Cross), Cipher Logistics Hub (Reed).\n"
-                        "• **Tracked Vehicles**: Dodge Charger [SYN-7X91], Ford Explorer [SYN-4K82], Chevrolet Van [SYN-9B14].\n"
-                        "• **Evidence Integrity**: All referenced exhibits verified compliant with Fed. R. Evid. 902(13) cryptographic self-authentication."
+                        "No synthesis was generated because the configured language model returned an empty response. "
+                        "Review the retrieved database records and model configuration. No additional facts were inferred."
                     )
 
                 state.final_response = final_text
-                state.confidence = 0.95
+                state.confidence = 0.7 if state.findings else 0.0
 
-                # Build epistemological findings reflecting the real synthesis
-                if not state.findings:
-                    if any(k in q_lower for k in ["suspect", "who", "person", "target"]):
-                        state.add_finding(FindingItem(
-                            category="OBSERVED FACT",
-                            title="Active Suspect RAG Extraction",
-                            finding="Identified 6 primary syndicate suspects across 9 criminal dossiers.",
-                            supporting_evidence_ids=["EVD-2024-00192", "EVD-2024-00341", "EVD-2024-00512"],
-                            confidence=0.98,
-                            status="RECORDS_VERIFIED"
-                        ))
-                    elif any(k in q_lower for k in ["vehicle", "charger", "plate", "syn-7x91"]):
-                        state.add_finding(FindingItem(
-                            category="OBSERVED FACT",
-                            title="Vehicle Optical Sighting",
-                            finding="Dodge Charger SYN-7X91 verified departing at 92 km/h on CAM-DT-014.",
-                            supporting_evidence_ids=["EVD-2024-00341", "CAM-DT-014"],
-                            confidence=0.94,
-                            status="OPTICAL_SENSOR_VERIFIED"
-                        ))
-                    elif any(k in q_lower for k in ["evidence", "laser", "cutter", "drill", "wire"]):
-                        state.add_finding(FindingItem(
-                            category="OBSERVED FACT",
-                            title="Forensic Evidence Verification",
-                            finding="CSU optical laser cut tool marks match Julian Drake seizure records with 96.4% confidence.",
-                            supporting_evidence_ids=["EVD-2024-00192", "EVD-2023-00049"],
-                            confidence=0.98,
-                            status="FORENSIC_LAB_VERIFIED"
-                        ))
+                # Do not manufacture findings when retrieval agents returned none.
+                if not state.findings and not state.cases and not state.persons and not state.evidence and not state.vehicles:
+                    state.confidence = 0.0
+                    final_text = (
+                        "No supporting records were retrieved for this query. Check database connectivity, "
+                        "agent errors, and query filters before drawing conclusions."
+                    )
+                    state.final_response = final_text
 
                 output = AgentOutputItem(
                     agent_name=cls.NAME,
                     task="Investigative intelligence synthesis",
                     status="completed",
                     execution_time_ms=timer.duration_ms,
-                    confidence=0.95,
-                    findings=[f"Generated targeted intelligence briefing for query: '{state.query}'."],
+                    confidence=state.confidence,
+                    findings=["Synthesis completed using the retrieved records; conclusions require human verification."],
                     data={"query": state.query, "response_length": len(final_text)}
                 )
                 state.add_agent_output(output)
@@ -101,7 +115,7 @@ class SynthesisAgent:
                     task="Intelligence Synthesis",
                     status="completed",
                     duration_ms=timer.duration_ms,
-                    confidence=0.95,
+                    confidence=state.confidence,
                     output_summary={"query": state.query, "response_preview": final_text[:120]}
                 )
 

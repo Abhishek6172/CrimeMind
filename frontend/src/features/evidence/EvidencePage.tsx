@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../store/AppContext';
 import { evidenceApi } from '../../services/api/evidenceApi';
 import { casesApi } from '../../services/api/casesApi';
@@ -32,6 +32,7 @@ import {
 
 export const EvidencePage: React.FC = () => {
   const { navigateTo } = useApp();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
@@ -725,7 +726,27 @@ export const EvidencePage: React.FC = () => {
             />
           </div>
 
-          {/* Upload Simulation Area */}
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const formattedSize = file.size > 1024 * 1024 ? `${sizeMB} MB` : `${(file.size / 1024).toFixed(1)} KB`;
+                setNewEvidenceForm(prev => ({
+                  ...prev,
+                  fileName: file.name,
+                  fileSize: formattedSize,
+                  title: prev.title ? prev.title : file.name.replace(/\.[^/.]+$/, ''),
+                }));
+              }
+            }}
+          />
+
+          {/* Upload Area */}
           <div
             style={{
               border: '2px dashed rgba(255, 42, 66, 0.3)',
@@ -734,17 +755,32 @@ export const EvidencePage: React.FC = () => {
               textAlign: 'center',
               background: 'rgba(255, 42, 66, 0.02)',
               cursor: 'pointer',
+              transition: 'border-color 0.2s ease, background-color 0.2s ease',
             }}
-            onClick={() => {
-              setNewEvidenceForm({
-                ...newEvidenceForm,
-                fileName: `evidence_artifact_${Date.now().toString().slice(-4)}.bin`,
-              });
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const file = e.dataTransfer.files?.[0];
+              if (file) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const formattedSize = file.size > 1024 * 1024 ? `${sizeMB} MB` : `${(file.size / 1024).toFixed(1)} KB`;
+                setNewEvidenceForm(prev => ({
+                  ...prev,
+                  fileName: file.name,
+                  fileSize: formattedSize,
+                  title: prev.title ? prev.title : file.name.replace(/\.[^/.]+$/, ''),
+                }));
+              }
             }}
           >
             <UploadIcon size={32} color="var(--color-crimson)" style={{ margin: '0 auto 8px auto' }} />
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              {newEvidenceForm.fileName ? `Selected: ${newEvidenceForm.fileName}` : 'Click or drop files to upload'}
+              {newEvidenceForm.fileName ? `Selected: ${newEvidenceForm.fileName} (${newEvidenceForm.fileSize})` : 'Click or drop files to upload'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
               Accepts MP4, WAV, PDF, JPG, PNG, CSV, JSON (Encrypted AES-256 upon intake)

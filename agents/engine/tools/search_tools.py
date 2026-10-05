@@ -13,7 +13,7 @@ def search_dossiers(query_text: str, limit: int = 20) -> List[Dict[str, Any]]:
     """
     engine = DatabaseConnection.get_engine()
     if not engine:
-        return _mock_search_results(query_text)
+        raise RuntimeError("PostgreSQL is unavailable; refusing to substitute synthetic search results.")
 
     results = []
     try:
@@ -53,26 +53,9 @@ def search_dossiers(query_text: str, limit: int = 20) -> List[Dict[str, Any]]:
 
             for r in results:
                 r["id"] = str(r["id"])
-            return results if results else _mock_search_results(query_text)
+            return results
     except Exception as e:
-        logger.warning(f"Error executing search_dossiers ({e}); returning fallback.")
-        return _mock_search_results(query_text)
+        logger.exception("Dossier search query failed")
+        raise RuntimeError(f"Dossier search query failed: {e}") from e
 
 
-def _mock_search_results(q: str) -> List[Dict[str, Any]]:
-    return [
-        {
-            "id": "c1a2b3c4-0001-4000-8000-000000000001",
-            "entity_type": "CASE",
-            "identifier": "CASE-2024-2390",
-            "label": "Operation Apex Shadow",
-            "snippet": f"Investigation into organized syndicate logistics matching search: '{q}'"
-        },
-        {
-            "id": "p1a2b3c4-0002-4000-8000-000000000002",
-            "entity_type": "PERSON",
-            "identifier": "SYN-ID-883920",
-            "label": "Marcus 'Viper' Vance",
-            "snippet": f"Identified suspect coordinator matching query keywords: '{q}'"
-        }
-    ]

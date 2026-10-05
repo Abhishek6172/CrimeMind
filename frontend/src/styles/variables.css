@@ -87,3 +87,50 @@
   --sidebar-width: 250px;
   --sidebar-collapsed-width: 72px;
 }
+
+[data-theme="light"] {
+  /* Surface & Background Hierarchy - Crisp Light Mode */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F3F4F6;
+  --bg-tertiary: #E5E7EB;
+  --bg-elevated: #D1D5DB;
+  --bg-overlay: rgba(255, 255, 255, 0.94);
+
+  /* Glassmorphism Tokens */
+  --glass-bg-subtle: rgba(243, 244, 246, 0.85);
+  --glass-bg-card: rgba(255, 255, 255, 0.95);
+  --glass-bg-elevated: rgba(249, 250, 251, 0.98);
+  --glass-bg-active: rgba(255, 42, 66, 0.08);
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(0, 0, 0, 0.10);
+  --border-medium: rgba(0, 0, 0, 0.18);
+  --border-strong: rgba(0, 0, 0, 0.28);
+  --border-crimson: rgba(255, 42, 66, 0.45);
+  --border-crimson-bright: #FF2A42;
+
+  /* Semantic Typography Colors */
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-tertiary: #6B7280;
+  --text-inverse: #FFFFFF;
+  --text-crimson: #D90429;
+
+  /* Verification Badges */
+  --badge-raw-bg: rgba(0, 0, 0, 0.06);
+  --badge-raw-text: #374151;
+  --badge-raw-border: rgba(0, 0, 0, 0.15);
+
+  --badge-ai-bg: rgba(255, 42, 66, 0.10);
+  --badge-ai-text: #D90429;
+  --badge-ai-border: rgba(255, 42, 66, 0.35);
+
+  --badge-verified-bg: rgba(0, 200, 130, 0.12);
+  --badge-verified-text: #059669;
+  --badge-verified-border: rgba(0, 200, 130, 0.35);
+
+  /* Shadows & Depth */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.14);
+}

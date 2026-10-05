@@ -19,6 +19,7 @@ import {
 } from '../../components/icons/Icons';
 
 export const AgentsPage: React.FC = () => {
+  const { addToast } = useApp();
   const [agents, setAgents] = useState<LangGraphAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningAgentId, setRunningAgentId] = useState<string | null>(null);
@@ -41,11 +42,36 @@ export const AgentsPage: React.FC = () => {
 
   const handleTriggerAgent = async (agentId: string) => {
     setRunningAgentId(agentId);
+
+    if (agentId === 'all') {
+      addToast('LangGraph 9-Agent Swarm Sync initiated across active forensic ledger...', 'info');
+      setAgents(prev => prev.map(a => ({
+        ...a,
+        status: 'active' as const,
+        currentTask: 'Running parallel RAG extraction & neural state sync...',
+      })));
+    } else {
+      addToast(`Triggering agent (${agentId})...`, 'info');
+      setAgents(prev => prev.map(a => a.id === agentId ? {
+        ...a,
+        status: 'active' as const,
+        currentTask: 'Processing active task pipeline...',
+      } : a));
+    }
+
     try {
+      await new Promise(resolve => setTimeout(resolve, 1400));
       await agentsApi.triggerAgent(agentId);
-      await loadAgents();
+      const updated = await agentsApi.getAll();
+      setAgents(updated);
+      if (agentId === 'all') {
+        addToast('Full Swarm Sync completed! All 9 neural agents synced to vault.', 'success');
+      } else {
+        addToast(`Agent (${agentId}) execution finished cleanly.`, 'success');
+      }
     } catch (err) {
       console.error('Trigger agent error', err);
+      addToast('Failed to trigger agent swarm', 'error');
     } finally {
       setRunningAgentId(null);
     }

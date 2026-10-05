@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -205,9 +205,11 @@ export const InvestigationsPage: React.FC = () => {
       const statusLabels: Record<CaseStatus, string> = {
         open: 'OPEN',
         under_investigation: 'UNDER INVESTIGATION',
-        reopened: 'REOPENED',
+        pending_forensics: 'PENDING FORENSICS',
         closed: 'CLOSED',
         cold_case: 'COLD CASE',
+        archived: 'ARCHIVED',
+        reopened: 'REOPENED',
       };
       addToast(`Case marked as ${statusLabels[newStatus] || newStatus.toUpperCase()}`, 'success');
     } catch (err) {
@@ -228,7 +230,7 @@ export const InvestigationsPage: React.FC = () => {
         caseId: activeCaseId,
         title: evidenceFormData.title,
         description: evidenceFormData.description,
-        evidence_type: evidenceFormData.evidence_type,
+        evidence_type: evidenceFormData.evidence_type as EvidenceType,
         evidenceType: evidenceFormData.evidence_type,
         source: evidenceFormData.source,
         file_name: evidenceFormData.file_name,

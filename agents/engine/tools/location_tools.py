@@ -18,7 +18,7 @@ def query_locations(
     """Query location entities from database."""
     engine = DatabaseConnection.get_engine()
     if not engine:
-        return _mock_locations()
+        raise RuntimeError("PostgreSQL is unavailable; refusing to substitute synthetic locations.")
 
     try:
         with engine.connect() as conn:
@@ -29,8 +29,8 @@ def query_locations(
                 try:
                     conditions.append("location_id = :lid")
                     params["lid"] = str(uuid.UUID(location_id))
-                except Exception:
-                    pass
+                except ValueError as exc:
+                    raise ValueError("location_id must be a valid UUID") from exc
 
             if city:
                 conditions.append("city ILIKE :city")
@@ -55,10 +55,10 @@ def query_locations(
                 r["location_id"] = str(r["location_id"])
                 r["latitude"] = float(r["latitude"])
                 r["longitude"] = float(r["longitude"])
-            return rows if rows else _mock_locations()
+            return rows
     except Exception as e:
-        logger.warning(f"Error querying locations ({e}); returning fallback.")
-        return _mock_locations()
+        logger.exception("Location database query failed")
+        raise RuntimeError(f"Location database query failed: {e}") from e
 
 
 def build_movement_path_analysis(observations: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -142,30 +142,3 @@ def build_movement_path_analysis(observations: List[Dict[str, Any]]) -> Dict[str
     }
 
 
-def _mock_locations() -> List[Dict[str, Any]]:
-    return [
-        {
-            "location_id": "l1a2b3c4-0005-4000-8000-000000000005",
-            "name": "Downtown Freight Logistics Terminal",
-            "address": "402 Harbor Parkway",
-            "city": "Metropolis",
-            "area": "Harbor Industrial District",
-            "postal_code": "90210",
-            "latitude": 34.0522,
-            "longitude": -118.2437,
-            "location_type": "commercial",
-            "risk_level": "high"
-        },
-        {
-            "location_id": "l2b3c4d5-0006-4000-8000-000000000006",
-            "name": "Industrial Port Basin Gate 3",
-            "address": "810 Pier 52 Road",
-            "city": "Metropolis",
-            "area": "Port Basin",
-            "postal_code": "90212",
-            "latitude": 34.0298,
-            "longitude": -118.2711,
-            "location_type": "port_marina",
-            "risk_level": "extreme"
-        }
-    ]

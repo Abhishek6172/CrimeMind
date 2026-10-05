@@ -15,7 +15,7 @@ def query_relationships(
     """Query relationships table for graph edges."""
     engine = DatabaseConnection.get_engine()
     if not engine:
-        return _mock_relationships()
+        raise RuntimeError("PostgreSQL is unavailable; refusing to substitute synthetic records.")
 
     try:
         with engine.connect() as conn:
@@ -53,10 +53,10 @@ def query_relationships(
                     r["source_evidence_id"] = str(r["source_evidence_id"])
                 if r.get("confidence"):
                     r["confidence"] = float(r["confidence"])
-            return rows if rows else _mock_relationships()
+            return rows
     except Exception as e:
-        logger.warning(f"Error querying relationships ({e}); returning fallback.")
-        return _mock_relationships()
+        logger.exception("Relationship database query failed")
+        raise RuntimeError(f"Relationship database query failed: {e}") from e
 
 
 def build_entity_graph(
@@ -66,8 +66,8 @@ def build_entity_graph(
     """
     Constructs an investigative relationship graph conforming to CrimeMind schema:
     {
-      "nodes": [{"id": "...", "type": "PERSON", "label": "Marcus Vance"}],
-      "edges": [{"source": "...", "target": "...", "type": "OPERATED_VEHICLE", "confidence": 0.94, "evidence_ids": []}]
+      "nodes": [{"id": "...", "type": "PERSON", "label": "PERSON_<id-prefix>"}],
+      "edges": [{"source": "...", "target": "...", "type": "RELATIONSHIP_TYPE", "confidence": 0.0, "evidence_ids": []}]
     }
     """
     raw_edges = query_relationships(entity_id=entity_ids[0] if entity_ids else None)
@@ -116,61 +116,5 @@ def build_entity_graph(
 
 
 def _label_for_entity(entity_type: str, entity_id: str) -> str:
-    # High readability human labels for synthetic entities
-    labels = {
-        "p1a2b3c4-0002-4000-8000-000000000002": "Marcus 'Viper' Vance",
-        "p2b3c4d5-0006-4000-8000-000000000006": "Elena 'Cipher' Rostova",
-        "v1a2b3c4-0003-4000-8000-000000000003": "Dodge Charger (SYN-7X91)",
-        "c1a2b3c4-0001-4000-8000-000000000001": "Case #CASE-2024-2390",
-        "cam-004-uuid": "Terminal Cam #04",
-        "l1a2b3c4-0005-4000-8000-000000000005": "Downtown Terminal",
-        "i1a2b3c4-0004-4000-8000-000000000004": "Contraband Breach Incident"
-    }
-    if entity_id in labels:
-        return labels[entity_id]
+    """Use a neutral identifier label; names must come from retrieved entity records."""
     return f"{entity_type}_{entity_id[:8]}"
-
-
-def _mock_relationships() -> List[Dict[str, Any]]:
-    return [
-        {
-            "relationship_id": "r-001",
-            "source_entity_type": "PERSON",
-            "source_entity_id": "p1a2b3c4-0002-4000-8000-000000000002",
-            "target_entity_type": "VEHICLE",
-            "target_entity_id": "v1a2b3c4-0003-4000-8000-000000000003",
-            "relationship_type": "OPERATES_VEHICLE",
-            "confidence": 0.94,
-            "source_evidence_id": "e2b3c4d5-0008-4000-8000-000000000008"
-        },
-        {
-            "relationship_id": "r-002",
-            "source_entity_type": "VEHICLE",
-            "source_entity_id": "v1a2b3c4-0003-4000-8000-000000000003",
-            "target_entity_type": "CCTV_CAMERA",
-            "target_entity_id": "cam-004-uuid",
-            "relationship_type": "CAPTURED_BY_OPTICAL_FEED",
-            "confidence": 0.96,
-            "source_evidence_id": "det-2024-0012"
-        },
-        {
-            "relationship_id": "r-003",
-            "source_entity_type": "CCTV_CAMERA",
-            "source_entity_id": "cam-004-uuid",
-            "target_entity_type": "INCIDENT",
-            "target_entity_id": "i1a2b3c4-0004-4000-8000-000000000004",
-            "relationship_type": "PROXIMITY_TO_SCENE",
-            "confidence": 0.88,
-            "source_evidence_id": "e2b3c4d5-0008-4000-8000-000000000008"
-        },
-        {
-            "relationship_id": "r-004",
-            "source_entity_type": "PERSON",
-            "source_entity_id": "p1a2b3c4-0002-4000-8000-000000000002",
-            "target_entity_type": "PERSON",
-            "target_entity_id": "p2b3c4d5-0006-4000-8000-000000000006",
-            "relationship_type": "ASSOCIATED_WITH",
-            "confidence": 0.82,
-            "source_evidence_id": "e1a2b3c4-0007-4000-8000-000000000007"
-        }
-    ]

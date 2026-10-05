@@ -30,6 +30,8 @@ interface AppContextType {
   setCurrentPersonId: (id: string | null) => void;
   isAssistantOpen: boolean;
   setIsAssistantOpen: (open: boolean) => void;
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
   cases: Case[];
   refreshCases: () => Promise<void>;
   alerts: Alert[];
@@ -47,9 +49,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('crimemind_theme') as 'dark' | 'light') || 'dark';
+  });
   const [cases, setCases] = useState<Case[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('crimemind_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const navigateTo = (page: string, params?: NavigationParams) => {
     setActivePage(page);
@@ -126,6 +140,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentPersonId: setSelectedPersonId,
         isAssistantOpen,
         setIsAssistantOpen,
+        theme,
+        toggleTheme,
         cases,
         refreshCases,
         alerts,
