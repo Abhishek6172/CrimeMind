@@ -64,9 +64,25 @@ export const Badge: React.FC<BadgeProps> = ({
         break;
     }
   } else if (priority) {
-    activeVariant = priority;
-    label = label || priority.toUpperCase();
+  switch (priority) {
+    case 'critical':
+    case 'extreme':
+      activeVariant = 'critical';
+      break;
+    case 'high':
+      activeVariant = 'high';
+      break;
+    case 'medium':
+    case 'moderate':
+      activeVariant = 'medium';
+      break;
+    case 'low':
+      activeVariant = 'low';
+      break;
   }
+
+  label = label || priority.toUpperCase();
+}
 
   const getStyles = (): { bg: string; text: string; border: string; glow?: string } => {
     switch (activeVariant) {

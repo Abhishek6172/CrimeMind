@@ -215,7 +215,7 @@ export const EvidencePage: React.FC = () => {
             placeholder="Search evidence ID, title, source..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            leftIcon={<SearchIcon size={16} />}
+            icon={<SearchIcon size={16} />}
           />
 
           <select
@@ -470,7 +470,7 @@ export const EvidencePage: React.FC = () => {
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Linked Case</span>
                 <Button
                   variant="ghost"
-                  size="small"
+                  size="sm"
                   style={{ padding: '0', height: 'auto', color: 'var(--color-crimson-bright)' }}
                   onClick={() => {
                     setSelectedEvidence(null);

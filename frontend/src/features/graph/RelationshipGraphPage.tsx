@@ -380,7 +380,7 @@ export const RelationshipGraphPage: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Button
             variant={showEvidence ? 'primary' : 'ghost'}
-            size="small"
+            size="sm"
             onClick={() => setShowEvidence(!showEvidence)}
             title="Toggle Evidence Nodes"
           >
@@ -389,7 +389,7 @@ export const RelationshipGraphPage: React.FC = () => {
 
           <Button
             variant="ghost"
-            size="small"
+            size="sm"
             onClick={() => setZoom(prev => Math.min(prev + 0.2, 2.5))}
             title="Zoom In"
           >
@@ -398,7 +398,7 @@ export const RelationshipGraphPage: React.FC = () => {
 
           <Button
             variant="ghost"
-            size="small"
+            size="sm"
             onClick={() => setZoom(prev => Math.max(prev - 0.2, 0.4))}
             title="Zoom Out"
           >
@@ -407,7 +407,7 @@ export const RelationshipGraphPage: React.FC = () => {
 
           <Button
             variant="ghost"
-            size="small"
+            size="sm"
             onClick={() => {
               setZoom(1);
               setPan({ x: 100, y: 50 });

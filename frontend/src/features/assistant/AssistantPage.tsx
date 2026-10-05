@@ -260,13 +260,13 @@ export const AssistantPage: React.FC = () => {
             </button>
 
             {isVoiceMode && (
-              <Button variant="ghost" size="small" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
+              <Button variant="ghost" size="sm" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
                 {isMuted ? <VolumeXIcon size={16} /> : <VolumeIcon size={16} />}
               </Button>
             )}
 
             {(isStreaming || isListening || isSpeaking) && (
-              <Button variant="danger" size="small" icon={<StopIcon size={14} />} onClick={handleStopAll}>
+              <Button variant="danger" size="sm" icon={<StopIcon size={14} />} onClick={handleStopAll}>
                 Stop
               </Button>
             )}

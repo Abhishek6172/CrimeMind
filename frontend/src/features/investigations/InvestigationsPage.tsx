@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -71,10 +71,23 @@ export const InvestigationsPage: React.FC = () => {
     file_name: 'evidence_capture.jpg',
   });
 
+  // Dynamic Case Detail state
+  const [caseDetail, setCaseDetail] = useState<any>(null);
+
   // Dynamic Case Evidence state
   const [caseEvidenceList, setCaseEvidenceList] = useState<any[]>(initialEvidence);
 
-  // Load evidence for current view
+  // Load details for current view
+  const loadCaseDetail = async (targetCaseId: string) => {
+    try {
+      const detail = await casesApi.getById(targetCaseId);
+      setCaseDetail(detail);
+    } catch (e) {
+      console.warn('Failed to load case detail', e);
+      setCaseDetail(null);
+    }
+  };
+
   const loadCaseEvidence = async (targetCaseId?: string) => {
     try {
       const allEv = await evidenceApi.getAll();
@@ -87,6 +100,9 @@ export const InvestigationsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    if (selectedCaseId) {
+      loadCaseDetail(selectedCaseId);
+    }
     loadCaseEvidence();
   }, [selectedCaseId]);
 
@@ -516,7 +532,7 @@ export const InvestigationsPage: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {initialPersons.slice(0, 3).map((p) => (
+                    {(caseDetail?.persons && caseDetail.persons.length > 0 ? caseDetail.persons : initialPersons.slice(0, 3)).map((p: any) => (
                       <div
                         key={p.person_id}
                         className="glass-panel-interactive"
@@ -529,12 +545,12 @@ export const InvestigationsPage: React.FC = () => {
                           </div>
                           <div>
                             <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#FFF' }}>{p.full_name}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Aliases: {p.aliases.join(', ') || 'None'} • {p.occupation}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Aliases: {Array.isArray(p.aliases) ? p.aliases.join(', ') : (p.aliases || 'None')} {p.occupation ? '• ' + p.occupation : ''}</div>
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <Badge priority={p.risk_level} size="sm" />
-                          <Badge variant="raw">PRIMARY SUSPECT</Badge>
+                          <Badge priority={p.risk_level || 'medium'} size="sm" />
+                          <Badge variant="raw">{p.relationship_type ? p.relationship_type.replace(/_/g, ' ').toUpperCase() : 'PRIMARY SUSPECT'}</Badge>
                           <ChevronRightIcon size={16} color="var(--text-tertiary)" />
                         </div>
                       </div>
@@ -583,7 +599,7 @@ export const InvestigationsPage: React.FC = () => {
                                 </span>
                                 <Badge variant="cyan" size="sm">{((evType || 'document') as string).replace(/_/g, ' ').toUpperCase()}</Badge>
                                 {ev.source && (
-                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>• {ev.source}</span>
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>â€¢ {ev.source}</span>
                                 )}
                               </div>
                               <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#FFF' }}>{ev.title}</div>

@@ -48,7 +48,19 @@ export const agentsApi = {
   // GET /api/agents (LangGraph Swarm Agents)
   async getAgents(): Promise<LangGraphAgent[]> {
     try {
-      return await api.get<LangGraphAgent[]>('/agents');
+      const response = await api.get<any[]>('/agents/status');
+      return response.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        role: item.role || 'Agent',
+        status: item.status,
+        currentTask: item.current_task || '',
+        executionTimeMs: item.execution_time_ms || 0,
+        confidence: item.confidence || 0.9,
+        findingsCount: item.findings_count || 0,
+        lastExecution: item.last_execution || new Date().toISOString(),
+        errors: item.errors || [],
+      }));
     } catch {
       return getLocalAgents();
     }
@@ -61,33 +73,36 @@ export const agentsApi = {
 
   // POST /api/agents/:id/trigger
   async triggerAgent(agentId: string): Promise<{ success: boolean; agentId: string; message: string }> {
+    let result;
     try {
-      return await api.post(`/agents/${agentId}/trigger`, {});
+      result = await api.post<{ success: boolean; agentId: string; message: string }>(`/agents/${agentId}/trigger`, {});
     } catch {
-      const agents = getLocalAgents();
-      if (agentId === 'all') {
-        const updated = agents.map(a => ({
-          ...a,
-          status: 'idle' as const,
-          lastExecution: new Date().toISOString(),
-          findingsCount: a.findingsCount + 1,
-        }));
-        saveLocalAgents(updated);
-        return { success: true, agentId: 'all', message: 'Full LangGraph multi-agent swarm synchronized.' };
-      }
-
-      const index = agents.findIndex(a => a.id === agentId);
-      if (index !== -1) {
-        agents[index] = {
-          ...agents[index],
-          status: 'idle',
-          lastExecution: new Date().toISOString(),
-          findingsCount: agents[index].findingsCount + 1,
-        };
-        saveLocalAgents(agents);
-      }
-      return { success: true, agentId, message: `Agent ${agentId} triggered successfully.` };
+      result = { success: true, agentId, message: `Agent ${agentId} triggered locally.` };
     }
+
+    const agents = getLocalAgents();
+    if (agentId === 'all') {
+      const updated = agents.map(a => ({
+        ...a,
+        status: 'idle' as const,
+        lastExecution: new Date().toISOString(),
+        findingsCount: a.findingsCount + 1,
+      }));
+      saveLocalAgents(updated);
+      return result || { success: true, agentId: 'all', message: 'Full LangGraph multi-agent swarm synchronized.' };
+    }
+
+    const index = agents.findIndex(a => a.id === agentId);
+    if (index !== -1) {
+      agents[index] = {
+        ...agents[index],
+        status: 'idle',
+        lastExecution: new Date().toISOString(),
+        findingsCount: agents[index].findingsCount + 1,
+      };
+      saveLocalAgents(agents);
+    }
+    return result || { success: true, agentId, message: `Agent ${agentId} triggered successfully.` };
   },
 
   // GET /api/agents/status

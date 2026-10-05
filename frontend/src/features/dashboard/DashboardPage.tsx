@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -18,6 +18,7 @@ import {
   UserIcon,
 } from '../../components/icons/Icons';
 import { useApp } from '../../store/AppContext';
+import { analyticsApi, DashboardStats } from '../../services/api/analyticsApi';
 import {
   initialCCTVDetections,
   initialPersons,
@@ -29,6 +30,11 @@ import {
 export const DashboardPage: React.FC = () => {
   const { cases, setActivePage, setSelectedCaseId, setSelectedPersonId } = useApp();
   const [selectedFeedFilter, setSelectedFeedFilter] = useState<'all' | 'cctv' | 'alert' | 'agent'>('all');
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  useEffect(() => {
+    analyticsApi.getDashboardStats().then(setStats).catch(console.error);
+  }, []);
 
   const highPriorityCases = cases.filter(c => c.priority === 'critical' || c.priority === 'high');
 
@@ -62,10 +68,10 @@ export const DashboardPage: React.FC = () => {
             <CaseIcon size={16} color="var(--crimson-bright)" />
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.4rem', fontFamily: 'var(--font-heading)', color: '#FFF' }}>
-            {cases.length}
+            {stats ? stats.active_cases : cases.length}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--crimson-bright)', marginTop: '0.2rem', fontWeight: 600 }}>
-            {highPriorityCases.length} Critical Priority
+            {stats ? stats.high_priority_cases : highPriorityCases.length} Critical Priority
           </div>
         </div>
 
@@ -75,7 +81,7 @@ export const DashboardPage: React.FC = () => {
             <FileTextIcon size={16} color="var(--accent-cyan)" />
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.4rem', fontFamily: 'var(--font-heading)', color: '#FFF' }}>
-            20,000+
+            {stats ? stats.evidence_processed.toLocaleString() : '20,000+'}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', marginTop: '0.2rem', fontWeight: 600 }}>
             100% Chain-of-Custody Verified
@@ -88,7 +94,7 @@ export const DashboardPage: React.FC = () => {
             <CameraIcon size={16} color="var(--accent-amber)" />
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.4rem', fontFamily: 'var(--font-heading)', color: '#FFF' }}>
-            100,000+
+            {stats ? stats.cctv_detections.toLocaleString() : '100,000+'}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--accent-amber)', marginTop: '0.2rem', fontWeight: 600 }}>
             2,500 Cameras Streamed
@@ -101,10 +107,10 @@ export const DashboardPage: React.FC = () => {
             <BotIcon size={16} color="var(--accent-emerald)" />
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.4rem', fontFamily: 'var(--font-heading)', color: '#FFF' }}>
-            {initialAgentRuns.length} Runs
+            {stats ? stats.active_ai_agents : initialAgentRuns.length} Runs
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', marginTop: '0.2rem', fontWeight: 600 }}>
-            4,000 Hypotheses Synthesized
+            {stats ? stats.hypotheses_synthesized.toLocaleString() : '4,000'} Hypotheses Synthesized
           </div>
         </div>
       </div>
@@ -261,7 +267,7 @@ export const DashboardPage: React.FC = () => {
           }
           padding="none"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', divideY: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {initialAlerts.slice(0, 4).map((alert) => (
               <div
                 key={alert.alert_id}
@@ -373,6 +379,8 @@ export const DashboardPage: React.FC = () => {
             {initialCCTVDetections.map((det) => (
               <div
                 key={det.detection_id}
+                className="glass-panel-interactive"
+                onClick={() => setActivePage('cctv')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -381,6 +389,7 @@ export const DashboardPage: React.FC = () => {
                   borderRadius: 'var(--radius-sm)',
                   backgroundColor: 'rgba(255, 255, 255, 0.02)',
                   border: '1px solid var(--border-subtle)',
+                  cursor: 'pointer',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -438,11 +447,19 @@ export const DashboardPage: React.FC = () => {
             {initialVehicles.map((v) => (
               <div
                 key={v.vehicle_id}
+                className="glass-panel-interactive"
+                onClick={() => { 
+                  if (v.owner_person_id) {
+                    setSelectedPersonId(v.owner_person_id); 
+                    setActivePage('person-profile'); 
+                  }
+                }}
                 style={{
                   padding: '0.85rem',
                   borderRadius: 'var(--radius-sm)',
                   backgroundColor: 'rgba(255, 255, 255, 0.02)',
                   border: '1px solid var(--border-subtle)',
+                  cursor: 'pointer',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

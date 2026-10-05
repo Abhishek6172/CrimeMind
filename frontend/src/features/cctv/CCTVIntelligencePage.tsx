@@ -436,7 +436,7 @@ export const CCTVIntelligencePage: React.FC = () => {
                 {det.personId && (
                   <Button
                     variant="ghost"
-                    size="small"
+                    size="sm"
                     onClick={() => navigateTo('person-profile', { personId: det.personId })}
                   >
                     Dossier <ArrowRightIcon size={12} />

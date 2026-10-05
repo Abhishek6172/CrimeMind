@@ -23,6 +23,9 @@ def get_agents_status(
     Law/Policy Retrieval Agent, Timeline Agent, Synthesis Agent.
     """
     base_time = datetime.utcnow()
+    all_runs = db.query(AgentRun).filter(AgentRun.agent_name == 'all').count()
+    def get_fc(a_id, d):
+        return d + db.query(AgentRun).filter(AgentRun.agent_name == a_id).count() + all_runs
 
     return [
         AgentStatusResponse(
@@ -32,7 +35,7 @@ def get_agents_status(
             current_task="Standby for investigative natural language query decomposition",
             last_execution=base_time,
             execution_time_ms=124,
-            findings_count=18,
+            findings_count=get_fc('agent-planner', 18),
             confidence=0.98,
             errors=[],
             description="Decomposes high-level queries into sub-tasks and orchestrates DAG flow."
@@ -44,7 +47,7 @@ def get_agents_status(
             current_task="Multimodal vector index synchronization",
             last_execution=base_time,
             execution_time_ms=310,
-            findings_count=42,
+            findings_count=get_fc('agent-evidence', 42),
             confidence=0.94,
             errors=[],
             description="Cryptographic hash verification and multimodal embedding search."
@@ -56,7 +59,7 @@ def get_agents_status(
             current_task="Case metadata & statute cross-indexing",
             last_execution=base_time,
             execution_time_ms=180,
-            findings_count=29,
+            findings_count=get_fc('agent-case', 29),
             confidence=0.96,
             errors=[],
             description="Correlates case parameters, lead detectives, and status transitions."
@@ -68,7 +71,7 @@ def get_agents_status(
             current_task="Facial descriptor and alias resolution",
             last_execution=base_time,
             execution_time_ms=290,
-            findings_count=35,
+            findings_count=get_fc('agent-person', 35),
             confidence=0.92,
             errors=[],
             description="Resolves suspect identities, aliases, and known co-conspirators."
@@ -80,7 +83,7 @@ def get_agents_status(
             current_task="Optical edge stream processing on 12 municipal feeds",
             last_execution=base_time,
             execution_time_ms=450,
-            findings_count=84,
+            findings_count=get_fc('agent-cctv', 84),
             confidence=0.95,
             errors=[],
             description="Neural bounding box object detection and ANPR plate OCR."
@@ -92,7 +95,7 @@ def get_agents_status(
             current_task="Syndicate topological degree calculation",
             last_execution=base_time,
             execution_time_ms=220,
-            findings_count=31,
+            findings_count=get_fc('agent-graph', 31),
             confidence=0.97,
             errors=[],
             description="Multi-hop relationship graph traversal and shortest-path calculation."

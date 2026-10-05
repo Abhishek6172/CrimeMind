@@ -406,7 +406,7 @@ export const PersonProfilePage: React.FC = () => {
                   </p>
                   <Button
                     variant="ghost"
-                    size="small"
+                    size="sm"
                     style={{ padding: '0', color: 'var(--color-crimson-bright)' }}
                     onClick={() => {
                       const match = persons.find(p => (p.fullName || p.full_name || '').toLowerCase().includes((assoc.name || '').toLowerCase()));
@@ -446,7 +446,7 @@ export const PersonProfilePage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="small">
+                  <Button variant="ghost" size="sm">
                     Inspect Dossier <ArrowRightIcon size={12} />
                   </Button>
                 </Card>

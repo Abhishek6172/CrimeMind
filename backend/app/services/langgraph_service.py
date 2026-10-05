@@ -30,7 +30,7 @@ if str(agents_path) not in sys.path:
     sys.path.insert(0, str(agents_path))
 
 try:
-    from app.graph.master_graph import (
+    from engine.graph.master_graph import (
         stream_investigation as agent_stream_investigation,
         run_investigation as agent_run_investigation
     )

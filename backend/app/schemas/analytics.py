@@ -43,3 +43,12 @@ class VehicleAppearanceMetric(BaseModel):
     distinct_cameras_count: int
     is_stolen: bool
     owner_name: str
+
+class DashboardStats(BaseModel):
+    active_cases: int
+    high_priority_cases: int
+    evidence_processed: int
+    cctv_detections: int
+    active_ai_agents: int
+    hypotheses_synthesized: int
+

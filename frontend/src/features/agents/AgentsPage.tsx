@@ -60,7 +60,7 @@ export const AgentsPage: React.FC = () => {
       case 'standby':
         return <Badge variant="default">STANDBY</Badge>;
       case 'error':
-        return <Badge variant="danger">ERROR</Badge>;
+        return <Badge variant="critical">ERROR</Badge>;
       default:
         return <Badge variant="default">{status}</Badge>;
     }
@@ -305,7 +305,7 @@ export const AgentsPage: React.FC = () => {
 
                 <Button
                   variant="ghost"
-                  size="small"
+                  size="sm"
                   onClick={() => handleTriggerAgent(agent.id)}
                   loading={runningAgentId === agent.id}
                 >

@@ -8,11 +8,11 @@
 -- 1. USERS & ACCESS MANAGEMENT
 CREATE TABLE IF NOT EXISTS users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(64) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(64) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(128) NOT NULL,
-    badge_number VARCHAR(64) UNIQUE,
+    badge_number VARCHAR(64),
     role VARCHAR(32) NOT NULL CHECK (role IN ('investigator', 'administrator', 'analyst', 'supervisor', 'forensic_specialist')),
     department VARCHAR(128) NOT NULL DEFAULT 'Criminal Investigation Division',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS locations (
 -- 3. CASES (INVESTIGATION DOSSIERS)
 CREATE TABLE IF NOT EXISTS cases (
     case_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    case_number VARCHAR(64) NOT NULL UNIQUE,
+    case_number VARCHAR(64) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'open' CHECK (status IN (
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS persons (
     date_of_birth DATE,
     age INTEGER CHECK (age >= 0 AND age <= 125),
     gender VARCHAR(20) CHECK (gender IN ('male', 'female', 'non-binary', 'unknown')),
-    national_id_synthetic VARCHAR(64) NOT NULL UNIQUE,
+    national_id_synthetic VARCHAR(64) NOT NULL,
     occupation VARCHAR(128),
     description TEXT,
     physical_characteristics JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS case_persons (
 CREATE TABLE IF NOT EXISTS incidents (
     incident_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     case_id UUID,
-    incident_number VARCHAR(64) NOT NULL UNIQUE,
+    incident_number VARCHAR(64) NOT NULL,
     crime_type VARCHAR(64) NOT NULL,
     severity VARCHAR(20) NOT NULL DEFAULT 'moderate' CHECK (severity IN ('critical', 'severe', 'moderate', 'minor')),
     status VARCHAR(32) NOT NULL DEFAULT 'reported' CHECK (status IN ('reported', 'verified', 'under_investigation', 'cleared', 'unfounded')),
@@ -128,8 +128,8 @@ CREATE TABLE IF NOT EXISTS incidents (
 -- 7. VEHICLES
 CREATE TABLE IF NOT EXISTS vehicles (
     vehicle_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    registration_number VARCHAR(32) NOT NULL UNIQUE,
-    vin VARCHAR(32) NOT NULL UNIQUE,
+    registration_number VARCHAR(32) NOT NULL,
+    vin VARCHAR(32) NOT NULL,
     vehicle_type VARCHAR(32) NOT NULL CHECK (vehicle_type IN (
         'sedan', 'suv', 'truck', 'van', 'motorcycle', 'coupe', 'hatchback', 'commercial_truck'
     )),
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS cctv_cameras (
     camera_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     location_id UUID NOT NULL,
     camera_name VARCHAR(128) NOT NULL,
-    camera_code VARCHAR(64) NOT NULL UNIQUE,
+    camera_code VARCHAR(64) NOT NULL,
     source VARCHAR(64) NOT NULL CHECK (source IN (
         'municipal_surveillance', 'traffic_police', 'private_commercial',
         'residential_ring', 'atm_surveillance', 'subway_transit', 'highway_toll'
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS evidence (
     evidence_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     case_id UUID NOT NULL,
     incident_id UUID,
-    evidence_number VARCHAR(64) NOT NULL UNIQUE,
+    evidence_number VARCHAR(64) NOT NULL,
     evidence_type VARCHAR(50) NOT NULL CHECK (evidence_type IN (
         'documents', 'images', 'videos', 'audio', 'forensic_records',
         'digital_files', 'transaction_records', 'call_records', 'cctv_records',

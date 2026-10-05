@@ -111,7 +111,7 @@ def seed_with_python(conn, driver, data_dir):
             if driver == "psycopg2":
                 f.seek(0)
                 # COPY FROM is 50-100x faster than INSERT statements
-                copy_sql = f"COPY {table} ({cols}) FROM STDIN WITH (FORMAT csv, HEADER true, QUOTE '\"', ESCAPE '\\')"
+                copy_sql = f"COPY {table} ({cols}) FROM STDIN WITH (FORMAT csv, HEADER true)"
                 cursor.copy_expert(copy_sql, f)
             else:
                 # psycopg 3 copy
