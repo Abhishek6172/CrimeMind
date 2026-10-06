@@ -39,7 +39,7 @@ export const CCTVIntelligencePage: React.FC = () => {
   const [referenceImageType, setReferenceImageType] = useState<'person' | 'vehicle'>('person');
   const [uploadedReferenceName, setUploadedReferenceName] = useState('');
   const [isMatching, setIsMatching] = useState(false);
-  const [matchResults, setMatchResults] = useState<CCTVReferenceMatchResult[] | null>(null);
+  const [matchResults, setMatchResults] = useState<CCTVReferenceMatchResult | null>(null);
 
   // Ingest CCTV Footage / Stream State
   const [isAddFootageOpen, setIsAddFootageOpen] = useState(false);

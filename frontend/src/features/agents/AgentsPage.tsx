@@ -206,8 +206,8 @@ export const AgentsPage: React.FC = () => {
               { name: 'Timeline', y: 220 },
             ].map((node, i) => (
               <g key={`mid-${i}`} transform={`translate(480, ${node.y})`}>
-                <rect x="-70" y="-13" width="140" height="26" rx="4" fill="#0C0E14" stroke="rgba(255, 255, 255, 0.2)" strokeWidth="1" />
-                <text y="4" fill="var(--color-text-primary)" fontSize="10" fontWeight="600" textAnchor="middle">
+                <rect x="-70" y="-13" width="140" height="26" rx="4" fill="#141824" stroke="rgba(255, 255, 255, 0.4)" strokeWidth="1" />
+                <text y="4" fill="#FFFFFF" fontSize="11" fontWeight="700" textAnchor="middle">
                   {node.name} Agent
                 </text>
               </g>

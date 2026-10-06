@@ -28,17 +28,11 @@ import {
   ShieldIcon,
 } from '../../components/icons/Icons';
 import { useApp } from '../../store/AppContext';
-import { Case, PriorityLevel, CaseStatus, EvidenceItem } from '../../types';
+import { Case, PriorityLevel, CaseStatus, EvidenceItem, EvidenceType } from '../../types';
 import { casesApi } from '../../services/api/casesApi';
 import { evidenceApi } from '../../services/api/evidenceApi';
-import {
-  initialPersons,
-  initialEvidence,
-  initialCCTVDetections,
-  initialVehicles,
-  initialAIFindings,
-  initialGraphData,
-} from '../../utils/mockData';
+import { personsApi } from '../../services/api/personsApi';
+import { agentsApi } from '../../services/api/agentsApi';
 
 export const InvestigationsPage: React.FC = () => {
   const { cases, selectedCaseId, setSelectedCaseId, refreshCases, addToast, setSelectedPersonId, setActivePage } = useApp();
@@ -75,7 +69,11 @@ export const InvestigationsPage: React.FC = () => {
   const [caseDetail, setCaseDetail] = useState<any>(null);
 
   // Dynamic Case Evidence state
-  const [caseEvidenceList, setCaseEvidenceList] = useState<any[]>(initialEvidence);
+  const [caseEvidenceList, setCaseEvidenceList] = useState<any[]>([]);
+
+  // Dynamic Persons & Findings state
+  const [associatedPersons, setAssociatedPersons] = useState<any[]>([]);
+  const [aiFindings, setAiFindings] = useState<any[]>([]);
 
   // Load details for current view
   const loadCaseDetail = async (targetCaseId: string) => {
@@ -88,14 +86,27 @@ export const InvestigationsPage: React.FC = () => {
     }
   };
 
-  const loadCaseEvidence = async (targetCaseId?: string) => {
+  const loadCaseEvidence = async (targetCaseId?: string | null) => {
     try {
       const allEv = await evidenceApi.getAll();
       if (allEv && allEv.length > 0) {
         setCaseEvidenceList(allEv);
       }
     } catch (e) {
-      console.warn('Using default mock evidence list', e);
+      console.warn('Failed to load case evidence', e);
+    }
+  };
+
+  const loadPersonsAndFindings = async (targetCaseId?: string | null) => {
+    try {
+      const [persons, findings] = await Promise.all([
+        personsApi.getAll(),
+        agentsApi.getAIFindings(targetCaseId || undefined),
+      ]);
+      setAssociatedPersons(persons);
+      setAiFindings(findings);
+    } catch (e) {
+      console.warn('Failed to load persons/findings', e);
     }
   };
 
@@ -103,7 +114,8 @@ export const InvestigationsPage: React.FC = () => {
     if (selectedCaseId) {
       loadCaseDetail(selectedCaseId);
     }
-    loadCaseEvidence();
+    loadCaseEvidence(selectedCaseId);
+    loadPersonsAndFindings(selectedCaseId);
   }, [selectedCaseId]);
 
   // Selected Case Object
@@ -233,8 +245,8 @@ export const InvestigationsPage: React.FC = () => {
         evidence_type: evidenceFormData.evidence_type as EvidenceType,
         evidenceType: evidenceFormData.evidence_type,
         source: evidenceFormData.source,
-        file_name: evidenceFormData.file_name,
-        ai_tags: ['investigative-lead', 'forensic-record'],
+        fileName: evidenceFormData.file_name,
+        tags: ['investigative-lead', 'forensic-record'],
       });
       await loadCaseEvidence(activeCaseId);
       setIsEvidenceModalOpen(false);
@@ -534,19 +546,19 @@ export const InvestigationsPage: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {(caseDetail?.persons && caseDetail.persons.length > 0 ? caseDetail.persons : initialPersons.slice(0, 3)).map((p: any) => (
+                    {(caseDetail?.persons && caseDetail.persons.length > 0 ? caseDetail.persons : associatedPersons.slice(0, 3)).map((p: any) => (
                       <div
-                        key={p.person_id}
+                        key={p.person_id || p.id}
                         className="glass-panel-interactive"
                         style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                        onClick={() => { setSelectedPersonId(p.person_id); setActivePage('person-profile'); }}
+                        onClick={() => { setSelectedPersonId(p.person_id || p.id); setActivePage('person-profile'); }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                           <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: 'rgba(255, 42, 66, 0.1)', border: '1px solid rgba(255, 42, 66, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF4D63' }}>
                             <UserIcon size={20} />
                           </div>
                           <div>
-                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#FFF' }}>{p.full_name}</div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#FFF' }}>{p.full_name || p.fullName}</div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Aliases: {Array.isArray(p.aliases) ? p.aliases.join(', ') : (p.aliases || 'None')} {p.occupation ? '• ' + p.occupation : ''}</div>
                           </div>
                         </div>
@@ -601,7 +613,7 @@ export const InvestigationsPage: React.FC = () => {
                                 </span>
                                 <Badge variant="cyan" size="sm">{((evType || 'document') as string).replace(/_/g, ' ').toUpperCase()}</Badge>
                                 {ev.source && (
-                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>â€¢ {ev.source}</span>
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>• {ev.source}</span>
                                 )}
                               </div>
                               <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#FFF' }}>{ev.title}</div>
@@ -633,7 +645,7 @@ export const InvestigationsPage: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {initialAIFindings.map((find) => (
+                    {aiFindings.map((find) => (
                       <div
                         key={find.finding_id}
                         className="glass-panel"

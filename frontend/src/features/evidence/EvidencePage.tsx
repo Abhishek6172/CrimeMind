@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../store/AppContext';
 import { evidenceApi } from '../../services/api/evidenceApi';
 import { casesApi } from '../../services/api/casesApi';
-import { EvidenceItem, ChainOfCustodyEntry, Case } from '../../types';
+import { EvidenceItem, ChainOfCustodyEntry, Case, EvidenceType } from '../../types';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -92,7 +92,7 @@ export const EvidencePage: React.FC = () => {
         case_number: caseNum,
         title: newEvidenceForm.title,
         evidenceType: newEvidenceForm.evidenceType,
-        evidence_type: newEvidenceForm.evidenceType,
+        evidence_type: newEvidenceForm.evidenceType as EvidenceType,
         source: newEvidenceForm.source || 'Crime Scene Evidence Team',
         description: newEvidenceForm.description,
         fileName: newEvidenceForm.fileName || `${(newEvidenceForm.title || 'evidence').toLowerCase().replace(/\s+/g, '_')}.dat`,

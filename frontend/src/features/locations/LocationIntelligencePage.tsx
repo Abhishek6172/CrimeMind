@@ -421,10 +421,14 @@ export const LocationIntelligencePage: React.FC = () => {
             >
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Target Track:</span>
               <select
-                value={selectedSequence?.id || ''}
+                value={selectedSequence ? selectedSequence.id : 'all'}
                 onChange={e => {
-                  const seq = movementSequences.find(s => s.id === e.target.value);
-                  if (seq) setSelectedSequence(seq);
+                  if (e.target.value === 'all') {
+                    setSelectedSequence(null);
+                  } else {
+                    const seq = movementSequences.find(s => s.id === e.target.value);
+                    if (seq) setSelectedSequence(seq);
+                  }
                 }}
                 style={{
                   background: 'transparent',
@@ -436,6 +440,9 @@ export const LocationIntelligencePage: React.FC = () => {
                   cursor: 'pointer',
                 }}
               >
+                <option value="all" style={{ background: '#0a0d14', color: '#38BDF8', fontWeight: 'bold' }}>
+                  🌐 ALL TARGET TRACKS ({movementSequences.length} TARGETS)
+                </option>
                 {movementSequences.map(s => (
                   <option key={s.id} value={s.id} style={{ background: '#0a0d14', color: '#fff' }}>
                     {s.targetName} ({s.targetType})
