@@ -647,110 +647,121 @@ export const TacticalOpenMap: React.FC<TacticalOpenMapProps> = ({
   }, [hypotheses.length, fetchMapboxDrivingRoute]);
 
   // --------------------------------------------------------------------------
-  // 4. Render Baseline Verified Route & Event Waypoints
+  // 4. Render Baseline Verified Route & Event Waypoints (Single or All Swarm Targets)
   // --------------------------------------------------------------------------
   useEffect(() => {
-    if (!baselineRouteLayerRef.current || !mapRef.current || !selectedSequence) return;
+    if (!baselineRouteLayerRef.current || !mapRef.current) return;
     baselineRouteLayerRef.current.clearLayers();
 
-    if (baselineRoadCoords.length < 2) return;
+    const sequencesToRender = selectedSequence
+      ? [selectedSequence]
+      : movementSequences;
 
-    const themeColor = selectedSequence.targetType === 'PERSON' ? '#FF2A42' : '#06B6D4';
+    const colors = ['#FF2A42', '#06B6D4', '#A855F7', '#F59E0B', '#10B981', '#F43F5E', '#38BDF8', '#F97316'];
 
-    // Outer glow
-    const glowLine = L.polyline(baselineRoadCoords, {
-      color: themeColor,
-      weight: 8,
-      opacity: 0.3,
-    });
-    glowLine.addTo(baselineRouteLayerRef.current);
+    sequencesToRender.forEach((seq, seqIdx) => {
+      const hops = seq.hops.filter(h => h.lat != null && h.lng != null);
+      if (hops.length < 2) return;
 
-    // Inner crisp road vector
-    const coreLine = L.polyline(baselineRoadCoords, {
-      color: themeColor,
-      weight: 4,
-      opacity: 0.95,
-    });
-    coreLine.addTo(baselineRouteLayerRef.current);
+      const themeColor = seq.targetType === 'PERSON'
+        ? colors[seqIdx % colors.length]
+        : '#06B6D4';
 
-    // Render Event Waypoints
-    selectedSequence.hops.forEach((hop, idx) => {
-      if (hop.lat == null || hop.lng == null) return;
-      const isObserved = hop.status === 'Observed';
-      const nodeColor = isObserved ? '#10B981' : '#FF2A42';
+      const coords: Array<[number, number]> = (selectedSequence && baselineRoadCoords.length > 0)
+        ? baselineRoadCoords
+        : hops.map(h => [h.lat!, h.lng!]);
 
-      const icon = L.divIcon({
-        html: `
-          <div style="
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            transform: translate(-12px, -14px);
-            cursor: pointer;
-          ">
+      // Outer glow
+      const glowLine = L.polyline(coords, {
+        color: themeColor,
+        weight: selectedSequence ? 8 : 5,
+        opacity: 0.35,
+      });
+      glowLine.addTo(baselineRouteLayerRef.current!);
+
+      // Inner crisp road vector
+      const coreLine = L.polyline(coords, {
+        color: themeColor,
+        weight: selectedSequence ? 4 : 3,
+        opacity: 0.95,
+      });
+      coreLine.addTo(baselineRouteLayerRef.current!);
+
+      // Render Event Waypoints
+      hops.forEach((hop, idx) => {
+        const isObserved = hop.status === 'Observed';
+        const nodeColor = isObserved ? '#10B981' : themeColor;
+
+        const icon = L.divIcon({
+          html: `
             <div style="
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: #080B12;
-              border: 2px solid ${nodeColor};
-              box-shadow: 0 0 10px ${nodeColor};
-              color: #fff;
-              font-size: 11px;
-              font-weight: 900;
               display: flex;
               align-items: center;
-              justify-content: center;
+              gap: 6px;
+              white-space: nowrap;
+              transform: translate(-12px, -14px);
+              cursor: pointer;
             ">
-              ${idx + 1}
+              <div style="
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: #080B12;
+                border: 2px solid ${nodeColor};
+                box-shadow: 0 0 10px ${nodeColor};
+                color: #fff;
+                font-size: 10px;
+                font-weight: 900;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                ${idx + 1}
+              </div>
+              <div style="
+                background: rgba(8, 11, 18, 0.92);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                padding: 2px 7px;
+                border-radius: 4px;
+                display: flex;
+                flex-direction: column;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+              ">
+                <span style="font-size: 10px; font-weight: 800; color: #fff;">
+                  ${seq.targetName.split(' ')[0]}: ${hop.locationName}
+                </span>
+                <span style="font-size: 9px; font-family: monospace; color: #94a3b8;">
+                  ${hop.timestamp} &bull; ${hop.source}
+                </span>
+              </div>
             </div>
-            <div style="
-              background: rgba(8, 11, 18, 0.92);
-              border: 1px solid rgba(255, 255, 255, 0.2);
-              padding: 2px 7px;
-              border-radius: 4px;
-              display: flex;
-              flex-direction: column;
-              backdrop-filter: blur(8px);
-              box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-            ">
-              <span style="font-size: 11px; font-weight: 800; color: #fff;">
-                ${hop.locationName}
+          `,
+          className: 'verified-event-node',
+          iconSize: [22, 22],
+        });
+
+        const marker = L.marker([hop.lat!, hop.lng!], { icon });
+        marker.bindPopup(`
+          <div style="font-size: 12px; color: #fff; min-width: 200px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: 800; color: ${nodeColor}; font-size: 12px;">
+                ${seq.targetName.toUpperCase()} #${idx + 1}
               </span>
-              <span style="font-size: 9px; font-family: monospace; color: #94a3b8;">
-                ${hop.timestamp} &bull; ${hop.source}
+              <span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: rgba(255,255,255,0.1); color: #cbd5e1;">
+                ${hop.status}
               </span>
             </div>
+            <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">${hop.locationName}</div>
+            <div style="font-size: 11px; color: #94a3b8;"><strong>Time:</strong> ${hop.timestamp}</div>
+            <div style="font-size: 11px; color: #94a3b8;"><strong>Source:</strong> ${hop.source}</div>
           </div>
-        `,
-        className: 'verified-event-node',
-        iconSize: [24, 24],
+        `);
+
+        marker.addTo(baselineRouteLayerRef.current!);
       });
-
-      const marker = L.marker([hop.lat, hop.lng], { icon });
-      marker.bindPopup(`
-        <div style="font-size: 12px; color: #fff; min-width: 200px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <span style="font-weight: 800; color: ${nodeColor}; font-size: 13px;">
-              VERIFIED EVENT #${idx + 1}
-            </span>
-            <span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: rgba(255,255,255,0.1); color: #cbd5e1;">
-              ${hop.status}
-            </span>
-          </div>
-          <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">${hop.locationName}</div>
-          <div style="font-size: 11px; color: #94a3b8;"><strong>Time:</strong> ${hop.timestamp}</div>
-          <div style="font-size: 11px; color: #94a3b8;"><strong>Source:</strong> ${hop.source}</div>
-          <div style="font-size: 11px; color: #10B981; font-weight: 700; margin-top: 4px;">
-            Verified Sighting (${Math.round((hop.confidence || 0.8) * 100)}% match)
-          </div>
-        </div>
-      `);
-
-      marker.addTo(baselineRouteLayerRef.current!);
     });
-  }, [baselineRoadCoords, selectedSequence]);
+  }, [baselineRoadCoords, selectedSequence, movementSequences]);
 
   // --------------------------------------------------------------------------
   // 5. Render Hypotheses & Assumed Multi-Paths on Map

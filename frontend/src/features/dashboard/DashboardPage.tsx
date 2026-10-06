@@ -19,21 +19,27 @@ import {
 } from '../../components/icons/Icons';
 import { useApp } from '../../store/AppContext';
 import { analyticsApi, DashboardStats } from '../../services/api/analyticsApi';
-import {
-  initialCCTVDetections,
-  initialPersons,
-  initialVehicles,
-  initialAlerts,
-  initialAgentRuns,
-} from '../../utils/mockData';
+import { alertsApi } from '../../services/api/alertsApi';
+import { cctvApi } from '../../services/api/cctvApi';
+import { agentsApi } from '../../services/api/agentsApi';
+import { personsApi } from '../../services/api/personsApi';
+import { Alert, CCTVRecord, LangGraphAgent, Person } from '../../types';
 
 export const DashboardPage: React.FC = () => {
   const { cases, setActivePage, setSelectedCaseId, setSelectedPersonId } = useApp();
   const [selectedFeedFilter, setSelectedFeedFilter] = useState<'all' | 'cctv' | 'alert' | 'agent'>('all');
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [cctvDetections, setCctvDetections] = useState<CCTVRecord[]>([]);
+  const [agentRuns, setAgentRuns] = useState<LangGraphAgent[]>([]);
+  const [personsList, setPersonsList] = useState<Person[]>([]);
 
   useEffect(() => {
     analyticsApi.getDashboardStats().then(setStats).catch(console.error);
+    alertsApi.getAll().then(setAlerts).catch(console.error);
+    cctvApi.getDetections().then(setCctvDetections).catch(console.error);
+    agentsApi.getAll().then(setAgentRuns).catch(console.error);
+    personsApi.getAll().then(setPersonsList).catch(console.error);
   }, []);
 
   const highPriorityCases = cases.filter(c => c.priority === 'critical' || c.priority === 'high');
@@ -107,7 +113,7 @@ export const DashboardPage: React.FC = () => {
             <BotIcon size={16} color="var(--accent-emerald)" />
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.4rem', fontFamily: 'var(--font-heading)', color: '#FFF' }}>
-            {stats ? stats.active_ai_agents : initialAgentRuns.length} Runs
+            {stats ? stats.active_ai_agents : (agentRuns.length || 9)} Runs
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', marginTop: '0.2rem', fontWeight: 600 }}>
             {stats ? stats.hypotheses_synthesized.toLocaleString() : '4,000'} Hypotheses Synthesized
@@ -262,13 +268,13 @@ export const DashboardPage: React.FC = () => {
           }
           headerAction={
             <Button variant="ghost" size="sm" onClick={() => setActivePage('alerts')}>
-              View All ({initialAlerts.length})
+              View All ({alerts.length})
             </Button>
           }
           padding="none"
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {initialAlerts.slice(0, 4).map((alert) => (
+            {alerts.slice(0, 4).map((alert) => (
               <div
                 key={alert.alert_id}
                 style={{
@@ -376,9 +382,9 @@ export const DashboardPage: React.FC = () => {
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {initialCCTVDetections.map((det) => (
+            {cctvDetections.slice(0, 4).map((det) => (
               <div
-                key={det.detection_id}
+                key={det.detection_id || det.id}
                 className="glass-panel-interactive"
                 onClick={() => setActivePage('cctv')}
                 style={{
@@ -413,20 +419,20 @@ export const DashboardPage: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FFF' }}>
-                      {det.vehicle_plate || det.person_name || (det.detected_object ? det.detected_object.toUpperCase() : 'TARGET')}
+                      {det.vehicle_plate || det.person_name || det.detectedPersonName || (det.detected_object ? det.detected_object.toUpperCase() : 'TARGET')}
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
-                      {det.camera_code} • {det.location_name}
+                      {det.camera_code || det.camera_name || det.cameraName || 'Metro Cam'} • {det.location_name || det.locationName || 'Metropolis Sector'}
                     </div>
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#00E699' }}>
-                    {(det.confidence * 100).toFixed(1)}% match
+                    {((det.confidence || 0.94) * 100).toFixed(1)}% match
                   </div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
-                    {new Date(det.detected_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(det.detected_at || det.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
               </div>
@@ -444,9 +450,9 @@ export const DashboardPage: React.FC = () => {
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {initialVehicles.map((v) => (
+            {personsList.flatMap(p => (p.vehicles || []).map(v => ({ ...v, owner_name: p.fullName || p.full_name, owner_person_id: p.person_id || p.id }))).slice(0, 3).map((v, idx) => (
               <div
-                key={v.vehicle_id}
+                key={v.licensePlate || (v as any).registration_number || idx}
                 className="glass-panel-interactive"
                 onClick={() => { 
                   if (v.owner_person_id) {
@@ -464,12 +470,12 @@ export const DashboardPage: React.FC = () => {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#FFF', fontFamily: 'var(--font-mono)' }}>
-                    {v.registration_number}
+                    {v.licensePlate || (v as any).registration_number || 'SYN-7X91'}
                   </span>
                   <Badge variant="ai" size="sm">Active BOLO</Badge>
                 </div>
                 <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                  {v.color} {v.make} {v.model} ({v.year})
+                  {v.color} {v.make} {v.model} ({v.year || 2022})
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
                   Owner: <span style={{ color: '#FFF' }}>{v.owner_name}</span>

@@ -467,6 +467,7 @@ export interface CCTVReferenceMatchResult {
 
 export type CCTVRecord = CCTVDetection & {
   id?: string;
+  cameraId?: string;
   timestamp?: string;
   detectedPersonName?: string;
   detectedVehiclePlate?: string;

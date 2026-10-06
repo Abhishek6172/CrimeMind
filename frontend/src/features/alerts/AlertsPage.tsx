@@ -152,9 +152,12 @@ export const AlertsPage: React.FC = () => {
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
   const filteredAlerts = alerts.filter((alert) => {
+    if (!alert) return false;
+    const title = alert.title || '';
+    const description = alert.description || '';
     const matchesSearch =
-      alert.title.toLowerCase().includes(normalizedSearch) ||
-      alert.description.toLowerCase().includes(normalizedSearch) ||
+      title.toLowerCase().includes(normalizedSearch) ||
+      description.toLowerCase().includes(normalizedSearch) ||
       (alert.source_evidence_title
         ?.toLowerCase()
         .includes(normalizedSearch) ??
@@ -177,6 +180,7 @@ export const AlertsPage: React.FC = () => {
 
   const unacknowledgedCriticalCount = alerts.filter(
     (alert) =>
+      alert &&
       (alert.severity === 'critical' ||
         alert.severity === 'extreme') &&
       !alert.is_acknowledged
@@ -435,7 +439,7 @@ export const AlertsPage: React.FC = () => {
                       }}
                     >
                       Type:{' '}
-                      {alert.alert_type
+                      {(alert.alert_type || 'AGENT_GENERATED')
                         .replace(/_/g, ' ')
                         .toUpperCase()}
                     </span>
