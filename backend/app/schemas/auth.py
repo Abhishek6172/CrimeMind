@@ -20,20 +20,48 @@ class Token(BaseModel):
     expires_in: int
     user_id: UUID
     username: str
+    email: Optional[str] = None
     role: str
     full_name: str
     badge_number: Optional[str] = None
+    picture: Optional[str] = None
+    provider: Optional[str] = "local"
 
 
 class TokenData(BaseModel):
     user_id: Optional[str] = None
     username: Optional[str] = None
+    email: Optional[str] = None
     role: Optional[str] = None
 
 
 class UserLogin(BaseModel):
-    username: str
+    username: str  # Can be username or email address
     password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = None  # Google Identity Services One Tap / button credential JWT
+    id_token: Optional[str] = None    # Direct ID token
+
+
+class GoogleCodeRequest(BaseModel):
+    code: str
+    state: Optional[str] = None
+    redirect_uri: Optional[str] = None
+
+
+class GoogleAuthUrlResponse(BaseModel):
+    authorization_url: str
+    state: str
+    redirect_uri: str
+
+
+class GooglePublicConfig(BaseModel):
+    client_id: str
+    project_id: str
+    redirect_uri: str
+    auth_uri: str
 
 
 class UserCreate(BaseModel):
@@ -52,6 +80,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     badge_number: Optional[str] = None
+    picture: Optional[str] = None
     role: str
     department: str
     is_active: bool

@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore"
@@ -29,6 +29,20 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = "crimemind-super-secret-fips140-cryptographic-vault-key-2024"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
+
+    # Google OAuth 2.0 Configuration
+    GOOGLE_CLIENT_ID: str = "888824302509-u2geafh9b1hn9sob0tp9d8iuai91v83n.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_PROJECT_ID: str = "glass-badge-468110-d1"
+
+    # Google OAuth Endpoints
+    GOOGLE_AUTH_URI: str = "https://accounts.google.com/o/oauth2/auth"
+    GOOGLE_TOKEN_URI: str = "https://oauth2.googleapis.com/token"
+    GOOGLE_CERTS_URI: str = "https://www.googleapis.com/oauth2/v1/certs"
+
+    # Application URLs
+    GOOGLE_REDIRECT_URI: str = "http://localhost:3000/auth/google/callback"
+    APP_BASE_URL: str = "http://localhost:3000"
 
     # CORS
     CORS_ORIGINS: List[str] = [

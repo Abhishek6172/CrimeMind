@@ -13,12 +13,17 @@ import { AssistantPage } from './features/assistant/AssistantPage';
 import { AgentsPage } from './features/agents/AgentsPage';
 import { AlertsPage } from './features/alerts/AlertsPage';
 import { AnalyticsPage } from './features/analytics/AnalyticsPage';
+import { LoginPage } from './features/auth/LoginPage';
 
 export const App: React.FC = () => {
   const { currentRoute } = useApp();
 
   const renderCurrentPage = () => {
     switch (currentRoute) {
+      case 'login':
+      case 'login/callback':
+      case 'auth/google/callback':
+        return <LoginPage />;
       case 'landing':
         return <LandingPage />;
       case 'dashboard':

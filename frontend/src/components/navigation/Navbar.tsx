@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../store/AppContext';
-import { CrimeMindLogoIcon, BellIcon, SunIcon, MoonIcon } from '../icons/Icons';
+import { CrimeMindLogoIcon, BellIcon, SunIcon, MoonIcon, UserIcon, LogOutIcon, LockIcon } from '../icons/Icons';
 
 export interface NavbarProps {
   activePage: string;
@@ -15,7 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadAlertCount = 4,
   onOpenAssistantModal,
 }) => {
-  const { theme, toggleTheme } = useApp();
+  const { theme, toggleTheme, user, isAuthenticated, logout } = useApp();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -168,8 +168,104 @@ export const Navbar: React.FC<NavbarProps> = ({
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
           {theme === 'dark' ? <SunIcon size={16} color="var(--accent-amber)" /> : <MoonIcon size={16} color="var(--accent-purple)" />}
-          <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
         </button>
+
+        {/* User Authentication Status / Actions */}
+        {isAuthenticated && user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.35rem 0.65rem',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              {user.picture ? (
+                <img
+                  src={user.picture}
+                  alt={user.full_name}
+                  style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                <span
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 42, 66, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--crimson-bright)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {user.full_name?.charAt(0) || 'D'}
+                </span>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+                  {user.full_name || user.username}
+                </span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>
+                  {user.badge_number ? `BADGE #${user.badge_number}` : user.role?.toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => logout()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.45rem 0.65rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: '#FF6B7D',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid rgba(255, 42, 66, 0.3)',
+                backgroundColor: 'rgba(255, 42, 66, 0.08)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+              }}
+              title="Terminate Authenticated Session"
+            >
+              <LogOutIcon size={14} />
+              <span>Exit</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => onNavigate('login')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.45rem 0.85rem',
+              fontSize: '0.825rem',
+              fontWeight: 700,
+              color: '#FFFFFF',
+              borderRadius: 'var(--radius-sm)',
+              background: activePage === 'login'
+                ? 'rgba(255, 42, 66, 0.3)'
+                : 'linear-gradient(135deg, #FF2A42 0%, #D40816 100%)',
+              border: '1px solid rgba(255, 42, 66, 0.6)',
+              boxShadow: '0 0 14px rgba(255, 42, 66, 0.35)',
+              cursor: 'pointer',
+              transition: 'all var(--transition-fast)',
+            }}
+          >
+            <LockIcon size={14} />
+            <span>Sign In</span>
+          </button>
+        )}
       </div>
     </header>
   );

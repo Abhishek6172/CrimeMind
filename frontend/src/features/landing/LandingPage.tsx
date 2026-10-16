@@ -5,7 +5,7 @@ import { ArrowRightIcon, BrainIcon, NetworkGraphIcon, ActivityIcon, ShieldIcon }
 import { useApp } from '../../store/AppContext';
 
 export const LandingPage: React.FC = () => {
-  const { setActivePage, setIsAssistantOpen } = useApp();
+  const { setActivePage, setIsAssistantOpen, isAuthenticated } = useApp();
 
   return (
     <div style={{ minHeight: 'calc(100vh - var(--navbar-height))', display: 'flex', flexDirection: 'column' }}>
@@ -73,16 +73,16 @@ export const LandingPage: React.FC = () => {
               size="lg"
               icon={<ArrowRightIcon size={18} />}
               iconPosition="right"
-              onClick={() => setActivePage('investigations')}
+              onClick={() => setActivePage(isAuthenticated ? 'investigations' : 'login')}
             >
-              Start Investigation
+              {isAuthenticated ? 'Start Investigation' : 'Access Tactical Portal'}
             </Button>
 
             <Button
               variant="secondary"
               size="lg"
               icon={<ActivityIcon size={18} />}
-              onClick={() => setActivePage('dashboard')}
+              onClick={() => setActivePage(isAuthenticated ? 'dashboard' : 'login')}
             >
               View Live Intelligence
             </Button>

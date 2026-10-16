@@ -12,7 +12,7 @@ interface MainLayoutProps {
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { currentRoute, navigateTo, selectedCaseId, selectedPersonId, unreadAlertCount, setIsAssistantOpen } = useApp();
 
-  const isLanding = currentRoute === 'landing';
+  const isLanding = currentRoute === 'landing' || currentRoute === 'login' || currentRoute === 'login/callback' || currentRoute === 'auth/google/callback';
 
   const getBreadcrumbs = () => {
     switch (currentRoute) {

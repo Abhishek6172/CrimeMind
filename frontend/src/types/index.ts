@@ -23,6 +23,29 @@ export interface User {
   badge_number?: string;
   role: 'investigator' | 'administrator' | 'analyst' | 'supervisor' | 'forensic_specialist';
   department: string;
+  picture?: string;
+  provider?: string;
+}
+
+export interface AuthTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user_id: string;
+  username: string;
+  email?: string;
+  role: string;
+  full_name: string;
+  badge_number?: string;
+  picture?: string;
+  provider?: string;
+}
+
+export interface GooglePublicConfig {
+  client_id: string;
+  project_id: string;
+  redirect_uri: string;
+  auth_uri: string;
 }
 
 export interface Case {

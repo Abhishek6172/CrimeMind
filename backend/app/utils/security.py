@@ -55,19 +55,23 @@ def decode_access_token(token: str) -> TokenData:
         )
 
 
-async def get_current_user(token: Optional[str] = Depends(oauth2_scheme)) -> TokenData:
+from fastapi import Request
+
+
+async def get_current_user(request: Request, token: Optional[str] = Depends(oauth2_scheme)) -> TokenData:
     """
-    Dependency to resolve the authenticated user from the Bearer token.
+    Dependency to resolve the authenticated user from the Bearer token or HTTP-only session cookie.
     For development/demo ergonomics, if no token is provided, a default investigator context is returned.
     """
-    if not token:
+    effective_token = token or request.cookies.get("crimemind_session")
+    if not effective_token:
         # Development fallback user context for smooth demoing without blocking login
         return TokenData(
             user_id="00000000-0000-0000-0000-000000000001",
             username="investigator_lead",
             role="investigator"
         )
-    return decode_access_token(token)
+    return decode_access_token(effective_token)
 
 
 def require_roles(allowed_roles: List[str]):

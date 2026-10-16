@@ -40,14 +40,17 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     }
   }
 
-  const defaultHeaders: HeadersInit = {
+  const storedToken = typeof localStorage !== 'undefined' ? localStorage.getItem('crimemind_token') : null;
+  const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    ...headers,
+    ...(storedToken ? { 'Authorization': `Bearer ${storedToken}` } : {}),
+    ...(headers as Record<string, string>),
   };
 
   try {
     const response = await fetch(url, {
+      credentials: 'include',
       headers: defaultHeaders,
       ...rest,
     });
